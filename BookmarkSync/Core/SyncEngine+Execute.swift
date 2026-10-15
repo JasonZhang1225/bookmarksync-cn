@@ -23,15 +23,7 @@ private func readProfiles(_ requests: [(configId: String, bundleId: String, prof
         for request in requests {
             group.addTask {
                 let url = URL(fileURLWithPath: request.path)
-                let parser: BrowserParser
-                switch request.bundleId {
-                case "com.apple.Safari":
-                    parser = SafariParser(filePath: url, profileName: request.profileName)
-                case "org.mozilla.firefox":
-                    parser = FirefoxParser(filePath: url)
-                default:
-                    parser = ChromeParser(filePath: url)
-                }
+                let parser = makeBookmarkParser(bundleId: request.bundleId, profileName: request.profileName, fileURL: url)
 
                 do {
                     let raw = try parser.read()
@@ -281,7 +273,8 @@ extension SyncEngine {
                                     profileName: config.profileName,
                                     reason: reason,
                                     deletedIds: deletedIds,
-                                    previousCount: latestDict.count
+                                    previousCount: latestDict.count,
+                                    diff: BookmarkDiff(old: Array(latestDict.values), new: currentNodes)
                                 )
                                 if viewModel.deletionHolds[config.id] != hold {
                                     viewModel.deletionHolds[config.id] = hold
