@@ -64,6 +64,9 @@ struct PendingDeletionHold: Identifiable, Equatable {
     let reason: DeletionGuard.Reason
     let deletedIds: Set<String>
     let previousCount: Int
+    /// What the profile's file looks like now compared with last time, so the
+    /// user can see which bookmarks would be deleted before deciding.
+    let diff: BookmarkDiff
 
     var id: String { configId }
 }

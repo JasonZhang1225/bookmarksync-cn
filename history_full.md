@@ -22,3 +22,17 @@
 - 原因/决策：参照 BJTUselfService-KMP-Refreshed 的协作体系；问题清单合并了 Claude Code 与 Codex 两份审阅。
 - 验证：仅文档；合入前已在分支上合并 PR #1 后的 `main`。
 - 未验证：计划中的问题均来自静态阅读。
+
+## 2026-10-15 读取异常与大批量删除保护（PR #3，`fix/s1-s2-deletion-safety`，计划 S1、S2）
+
+- 改动：新增 `BookmarkParseError`，Safari / Firefox 文件结构异常时抛错，不再返回空列表；新增 `DeletionGuard`，读到空结果而上次非空、删除 ≥10 个且 ≥20%、删除 ≥3 个且 ≥50% 时冻结该浏览器配置（不导入、不写入、不更新观察基线），每轮重新检查；菜单栏 `DeletionHoldBanner` 提供“确认删除 / 恢复书签”。
+- 原因/决策：只冻结出问题的那一个配置，同组其他浏览器照常同步（中枢里书签还在，其他浏览器不受影响）。
+- 验证：macOS CI（Xcode 27）79 个测试全部通过，其中新增 16 个（`DeletionGuardTests` 5、`ParserStructureTests` 7、`DeletionHoldIntegrationTests` 4）。
+- 实机：用户试用 CI 包时触发了暂停提示，但提示只显示数量，并暴露出备份恢复错位的问题（B1），转入批次 1b。
+
+## 2026-10-15 备份时间戳、准确恢复与逐条差异（PR #4，`fix/backup-restore-and-diff`，计划 B1–B3）
+
+- 改动：新增 `BackupStore`：备份按时间戳命名、不再改名；最近 7 天全留、7–30 天每天一份、总数上限 200，旧版 `.backup.N` / `daily` 照常列出且不清理；恢复先另存当前文件、再整体替换为所选备份，Firefox 恢复后清理旧 WAL；目标浏览器运行时拒绝恢复；恢复后用应用自己的同步引擎。新增 `BookmarkDiff` / `BookmarkDiffList`（+ − ~）；暂停删除提示条可查看详情；备份管理改为先对比再恢复。
+- 原因/决策：用户实机试用发现“恢复后提示删 83 个、确认后没变少”——旧轮换使恢复错位（B1），且恢复时 Chrome 开着、退出时覆盖了恢复结果；提示只显示数量，无法判断。
+- 验证：macOS CI（Xcode 27）90 个测试全部通过，含新增 `BackupStoreTests`（含恢复准确性回归测试）、`BackupRetentionTests`、`BookmarkDiffTests`。
+- 未验证：界面效果与真实恢复流程，留到实机验证第 1 轮。
