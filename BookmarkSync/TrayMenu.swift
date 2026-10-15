@@ -67,6 +67,10 @@ struct TrayMenu: View {
                 DeletionHoldBanner(viewModel: viewModel, hold: hold)
             }
 
+            if !viewModel.browsersAwaitingQuit.isEmpty {
+                WriteWaitBanner(viewModel: viewModel, configs: configs)
+            }
+
             // Connected Profiles Header
             HStack(alignment: .center) {
                 Text("Profiles")
@@ -250,6 +254,11 @@ struct TrayMenu: View {
                                         Image(systemName: "exclamationmark.triangle")
                                             .foregroundColor(.orange)
                                             .help("Profile temporarily unavailable. Saved configuration and bookmarks are preserved.")
+                                    }
+                                    if viewModel.readFailedConfigIds.contains(config.id) {
+                                        Image(systemName: "xmark.octagon")
+                                            .foregroundColor(.orange)
+                                            .help("Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again.")
                                     }
                                     Spacer()
                                 }

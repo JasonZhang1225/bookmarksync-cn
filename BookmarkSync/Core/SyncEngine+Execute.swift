@@ -131,6 +131,16 @@ extension SyncEngine {
             }
 
             let readsByConfig = Dictionary(reads.map { ($0.configId, $0) }, uniquingKeysWith: { first, _ in first })
+
+            // Profiles whose file could not be read this pass (Safari without Full
+            // Disk Access is reported separately and is not a read failure).
+            let failedReads = Set(enabledConfigs.filter { config in
+                readsByConfig[config.id] == nil &&
+                !(config.bundleId == "com.apple.Safari" && !viewModel.isFullDiskAccessGranted)
+            }.map { $0.id })
+            if failedReads != viewModel.readFailedConfigIds {
+                viewModel.readFailedConfigIds = failedReads
+            }
             let configsBySet = Dictionary(grouping: enabledConfigs, by: { $0.profileSetId! })
             let allStateNodes = try modelContext.fetch(FetchDescriptor<BookmarkNode>())
 
@@ -240,6 +250,35 @@ extension SyncEngine {
                 /// imported from them, written to them, or recorded as observed,
                 /// so the next pass compares against the same baseline again.
                 var heldConfigIds = Set<String>()
+
+                // One-off per profile: hubs written by versions that dropped
+                // empty folders lack the profile's existing ones, and the export
+                // below would delete them. See `EmptyFolderMigration`.
+                var migratedConfigIds = viewModel.migratedEmptyFolderConfigIds
+                for config in activeConfigs where !migratedConfigIds.contains(config.id) {
+                    guard let currentNodes = configCurrentNodes[config.id] else { continue }
+                    if config.lastSyncTime != nil {
+                        for folder in EmptyFolderMigration.emptyFolders(in: currentNodes) where stateById[folder.id] == nil {
+                            let node = BookmarkNode(
+                                id: folder.id,
+                                title: folder.title,
+                                type: .folder,
+                                parentId: folder.parentId,
+                                mtime: Date(),
+                                profileSetId: currentSetId,
+                                index: folder.index
+                            )
+                            stateById[node.id] = node
+                            modelContext.insert(node)
+                            hasChanges = true
+                            SyncLog.verbose("[Migrate] Restored empty folder \(folder.title) (\(folder.id)) to Hub")
+                        }
+                    }
+                    migratedConfigIds.insert(config.id)
+                }
+                if migratedConfigIds != viewModel.migratedEmptyFolderConfigIds {
+                    viewModel.migratedEmptyFolderConfigIds = migratedConfigIds
+                }
 
                 for config in triggeringConfigs {
                     guard let currentNodes = configCurrentNodes[config.id] else { continue }
@@ -376,21 +415,7 @@ extension SyncEngine {
                     viewModel.cancelPendingDiffs(forTitles: titlesToCancel)
                 }
 
-                var updatedStateNodes = Array(stateById.values)
-                
-                // Clean up empty folders from Hub
-                let filteredNodes = filterEmptyFolders(nodes: updatedStateNodes)
-                if filteredNodes.count < updatedStateNodes.count {
-                    let filteredIds = Set(filteredNodes.map { $0.id })
-                    for node in updatedStateNodes {
-                        if !filteredIds.contains(node.id) {
-                            modelContext.delete(node)
-                            hasChanges = true
-                            SyncLog.verbose("[Import] Filtered out empty folder \(node.title) (\(node.id))")
-                        }
-                    }
-                    updatedStateNodes = filteredNodes
-                }
+                let updatedStateNodes = Array(stateById.values)
                 
                 // Normalize indexes to resolve any collisions
                 var parentGroups: [String: [BookmarkNode]] = [:]

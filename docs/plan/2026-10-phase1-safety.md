@@ -29,11 +29,11 @@
 | S4 | P0 | Firefox“书签菜单”里的书签被复制进“其他书签”，越写越多 | `FirefoxParser.swift:85-87, 258-259` | 待确认后修复 |
 | M1 | P1 | 网址匹配过于激进：忽略端口，路径和参数转小写 | `BookmarkNode.swift:4-36` | 待修复 |
 | M2 | P1 | 各浏览器根目录映射不一致，导致部分书签永远同步不过去、反复写入 | `SafariParser+Write.swift:133-134`；`FirefoxParser.swift:52-53` | 待修复 |
-| M3 | P1 | 新建的空文件夹会在所有浏览器中被删除 | `SyncEngine+Execute.swift:326, 420-426` | 待修复 |
+| M3 | P1 | 新建的空文件夹会在所有浏览器中被删除 | `SyncEngine+Execute.swift:326, 420-426` | 进行中（`fix/m3-u1-empty-folders-write-wait`） |
 | M4 | P1 | 重名书签/文件夹的 `:dupN` 后缀依赖顺序，调整顺序就变成删除 + 新增 | 三个解析器的 `seenKeys` | 待评估 |
 | C1 | P1 | Chrome 写入删掉 `checksum`、只在关闭时改文件，与 Google 同步是否兼容未验证 | `ChromeParser.swift:323` | 待实测 |
 | C2 | P1 | Safari 直接改 plist，与 iCloud 书签同步是否兼容未验证 | `SafariParser+Write.swift` | 待实测 |
-| U1 | P2 | 写入要等浏览器完全退出，界面没有说清楚“退出哪个浏览器、有几项在等” | `WriteQueue.swift:71` | 待修复 |
+| U1 | P2 | 写入要等浏览器完全退出，界面没有说清楚“退出哪个浏览器、有几项在等” | `WriteQueue.swift:71` | 进行中（`fix/m3-u1-empty-folders-write-wait`） |
 | U2 | P2 | `Deleted by BookmarkSync` 文件夹只增不减，并随云同步出现在手机上 | 三个解析器的 `write()` | 待设计 |
 | U3 | P2 | 写入队列只在内存中；“自己刚写过的文件 5 秒内忽略”属于经验值 | `WriteQueue.swift`；`SyncEngine.swift:31` | 待评估 |
 | E1 | P2 | README 的说明与代码不符（README 说会去掉查询参数，实际保留），AGENTS 链接是原作者本机路径 | `README.md:16, 92` | 随 M1 修 |
@@ -128,6 +128,7 @@
 - **现象**：中枢会过滤掉没有书签的文件夹（`SyncEngine+Execute.swift:326`）。导出阶段发现浏览器里有、中枢里没有，就记为删除（`:420-426`），连创建这个文件夹的浏览器也不例外。
 - **修复思路**：空文件夹在中枢中保留，或者在导出比较时忽略空文件夹，不产生删除。
 - **验收**：在一个浏览器中新建空文件夹，同步后它不会被删除（是否传播到其他浏览器另定）。
+- **实现（`fix/m3-u1-empty-folders-write-wait`）**：中枢不再过滤空文件夹，空文件夹和普通书签一样同步到其他浏览器。过滤逻辑来自上游最初的实现，没有记录原因。旧版本的中枢里没有空文件夹，直接升级会让已有的空文件夹继续被删，所以加了一次性补录：每个浏览器配置第一次同步时，把它现有的空文件夹补进中枢（`EmptyFolderMigration`，记录在 `UserDefaults`）；补录过的配置以后不再补，避免把别处删掉的文件夹又加回来。
 
 ### M4 `:dupN` 后缀依赖顺序（P1，待评估）
 
@@ -150,6 +151,7 @@
 ### U1 写入等待提示（P2）
 
 - 菜单栏明确显示“退出 Edge 后写入 3 项改动”，并区分“关闭窗口”和“完全退出（⌘Q）”。PR #1 已在引导页文案中提到这一点；本项负责菜单栏里的实时状态。
+- **实现（`fix/m3-u1-empty-folders-write-wait`）**：`WriteQueue` 把“因浏览器运行而等待”的浏览器发布到 `AppViewModel.browsersAwaitingQuit`，菜单栏顶部 `WriteWaitBanner` 逐个显示“某浏览器正在运行，完全退出（⌘Q）后写入 N 项改动”。同时补上 S1 遗留的读取失败提示：读不出的配置在列表里显示橙色图标，悬停说明“已跳过、不会删除”。
 
 ### U2 删除归档文件夹（P2，待设计）
 
