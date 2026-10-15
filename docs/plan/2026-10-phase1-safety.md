@@ -34,6 +34,7 @@
 | U2 | P2 | `Deleted by BookmarkSync` 文件夹只增不减，并随云同步出现在手机上 | 三个解析器的 `write()` | 待设计 |
 | U3 | P2 | 写入队列只在内存中；“自己刚写过的文件 5 秒内忽略”属于经验值 | `WriteQueue.swift`；`SyncEngine.swift:31` | 待评估 |
 | E1 | P2 | README 的说明与代码不符（README 说会去掉查询参数，实际保留），AGENTS 链接是原作者本机路径 | `README.md:16, 92` | 随 M1 修 |
+| E2 | P2 | CI ad-hoc 签名每次改变身份，替换后需重新授权完全磁盘访问 | `.github/workflows/macos.yml` | 进行中（`codex/persistent-ci-signing`） |
 | D1 | 设计 | 书签身份模型：改为中枢自有 UUID + 各浏览器原生 ID 对照表 | — | 本阶段只出设计 |
 | D2 | 设计 | 浏览器运行中也能同步：Chromium/Firefox 配套扩展 | — | 本阶段只出设计 |
 
@@ -147,3 +148,10 @@
 
 - 批次 1 之前：建议只在测试用浏览器配置上开启写入，或使用“暂停（只读模式）”。
 - 任何一个批次在实测中出现丢失或重复时：用应用内“备份管理”或 `*.backup.1` 恢复，回退该 PR，并把现象记入 `history_full.md`。
+
+### E2 固定 CI 签名身份（P2，用户指定优先实施）
+
+- 使用专用固定自签名证书，私钥 P12 和密码仅在仓库 Secrets 与本机私有备份中保存。
+- 同仓库 PR / 手动运行签名并打包；Fork PR 不获得 Secrets。缺少证书时不降级为 ad-hoc。
+- 验收：签名验证、修改应用内容后仍满足旧版 designated requirement、CI 打包；最后由用户验证一次从固定签名版到下一版的安装替换后 Safari 读取权限仍可用。
+- 首次从旧 ad-hoc 签名切换，仍需重新授权一次；不以签名一致性测试代替 TCC 实机测试。
