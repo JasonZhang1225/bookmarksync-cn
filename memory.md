@@ -2,13 +2,13 @@
 
 > 最后更新：2026-10-15。
 > 当前分支：`codex/persistent-ci-signing`（E2 固定 CI 签名）；基于 `origin/main` 的 `c3788f7`，已包含 PR #1–#3。
-> 未合入：E2 固定 CI 签名（`codex/persistent-ci-signing`，PR 待创建）。
+> 未合入：E2 固定 CI 签名（`codex/persistent-ci-signing`，PR #5）。
 > 阶段计划：`docs/plan/2026-10-phase1-safety.md`（第一阶段：防丢数据与匹配正确性）。
 > 已完成工作的细节见 `history_full.md` 末尾日志。
 
 ## 进行中
 
-- E2（用户指定优先实施）：固定自签名证书已生成，两个仓库 Secrets 已配置；公钥进 Git，私钥和密码仅存本机私有备份与 Secrets。签名脚本用临时钥匙串，验证证书锚点；本机修改应用内容后重新签名，designated requirement 一致、内容哈希不同的检查通过。待推送并验证 CI。未安装到日常应用，TCC 跨版本授权保留尚待实测；切换到此证书需授权一次。详见 `docs/ci-signing.md`。
+- E2（用户指定优先实施）：固定自签名证书已生成，两个仓库 Secrets 已配置；公钥进 Git，私钥和密码仅存本机私有备份与 Secrets。签名脚本用临时钥匙串，验证证书锚点；本机修改应用内容后重新签名，designated requirement 一致、内容哈希不同的检查通过。已推送 PR #5；CI run `38757091989` 已排队，待验证。未安装到日常应用，TCC 跨版本授权保留尚待实测；切换到此证书需授权一次。详见 `docs/ci-signing.md`。
 
 - 第一批 S1 + S2（PR #3 已合入，保留实机验证跟踪）：解析器遇到结构异常时抛错；新增 `DeletionGuard`，读到空结果或一次删除过多时冻结该浏览器配置，菜单栏让用户选“确认删除 / 恢复书签”。新增 `DeletionSafetyTests`（规则、解析器、整条同步链路）。只能靠 PR CI 编译和测试；真机上的提示条和“恢复书签”的实际写回未验证。
 

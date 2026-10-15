@@ -34,7 +34,7 @@
 | U2 | P2 | `Deleted by BookmarkSync` 文件夹只增不减，并随云同步出现在手机上 | 三个解析器的 `write()` | 待设计 |
 | U3 | P2 | 写入队列只在内存中；“自己刚写过的文件 5 秒内忽略”属于经验值 | `WriteQueue.swift`；`SyncEngine.swift:31` | 待评估 |
 | E1 | P2 | README 的说明与代码不符（README 说会去掉查询参数，实际保留），AGENTS 链接是原作者本机路径 | `README.md:16, 92` | 随 M1 修 |
-| E2 | P2 | CI ad-hoc 签名每次改变身份，替换后需重新授权完全磁盘访问 | `.github/workflows/macos.yml` | 进行中（`codex/persistent-ci-signing`） |
+| E2 | P2 | CI ad-hoc 签名每次改变身份，替换后需重新授权完全磁盘访问 | `.github/workflows/macos.yml` | 进行中（PR #5，`codex/persistent-ci-signing`） |
 | D1 | 设计 | 书签身份模型：改为中枢自有 UUID + 各浏览器原生 ID 对照表 | — | 本阶段只出设计 |
 | D2 | 设计 | 浏览器运行中也能同步：Chromium/Firefox 配套扩展 | — | 本阶段只出设计 |
 
