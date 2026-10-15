@@ -25,8 +25,8 @@
 | B1 | P0 | 恢复备份时恢复的不是所选那一份；恢复时另起一个同步引擎；浏览器运行中恢复会被覆盖 | `BackupsView.swift` `restoreBackup`；`BrowserParser.performBackup` | 已完成（PR #4） |
 | B2 | P1 | 备份只有 `.backup.1/2/3` 三份轮换 + 7 份每日，名字看不出时间 | `BrowserParser.performBackup` | 已完成（PR #4） |
 | B3 | P1 | 暂停删除和备份恢复只显示数量，看不到具体是哪些书签 | `DeletionHoldBanner`；`BackupsView` | 已完成（PR #4） |
-| S3 | P0 | Firefox 写入时整体删除重建、换新 GUID，并清掉分隔线 | `FirefoxParser.swift:204-298` | 待修复 |
-| S4 | P0 | Firefox“书签菜单”里的书签被复制进“其他书签”，越写越多 | `FirefoxParser.swift:85-87, 258-259` | 待确认后修复 |
+| S3 | P0 | Firefox 写入时整体删除重建、换新 GUID，并清掉分隔线 | `FirefoxParser.swift:204-298` | 进行中（`fix/s3-firefox-incremental-write`） |
+| S4 | P0 | Firefox“书签菜单”里的书签被复制进“其他书签”，越写越多 | `FirefoxParser.swift:85-87, 258-259` | 进行中（随 S3，`fix/s3-firefox-incremental-write`） |
 | M1 | P1 | 网址匹配过于激进：忽略端口，路径和参数转小写 | `BookmarkNode.swift:4-36` | 进行中（`fix/m1-url-matching`） |
 | M2 | P1 | 各浏览器根目录映射不一致，导致部分书签永远同步不过去、反复写入 | `SafariParser+Write.swift:133-134`；`FirefoxParser.swift:52-53` | 进行中（`fix/m2-root-mapping`） |
 | M3 | P1 | 新建的空文件夹会在所有浏览器中被删除 | `SyncEngine+Execute.swift:326, 420-426` | 已完成（PR #6） |
@@ -103,12 +103,21 @@
 - **后果**：在 Firefox Sync 看来，每次写入都等于“删除全部书签，再新建一批”，可能产生重复、已删除的书签又被恢复、其他设备上的书签被清空等情况；书签的关键字、标签等附加数据也会丢失。
 - **修复思路**：改成增量写入：按 GUID（找不到时按父级 + 网址）把中枢节点和现有记录对应起来，只做新增、修改、移动、删除；已存在的记录保留原 GUID；删除时按 Firefox 的规则写入删除记录并更新同步计数；跳过分隔线等不认识的记录，不删除它们。根目录改用固定 GUID（`toolbar_____`、`unfiled_____`、`menu________`、`mobile______`）识别，不写死数字 ID。
 - **验收**：用 fixture `places.sqlite` 测试：未改动的书签 GUID 不变；分隔线、标签保留；删除产生删除记录；重复写入同一份中枢状态后数据库无变化（幂等）。还需要用测试账号做一次 Firefox Sync 往返实测。
+- **实现（`fix/s3-firefox-incremental-write`）**：新增 `FirefoxIncrementalWriter`（`FirefoxParser+Write.swift`）。读和写共用 `FirefoxParser.assignIds`，用同一套规则给每一行算 ID，所以写入时能准确找到已有的行：
+  - 目标里没有的行，连同子树一起删除；如果这一行 Firefox Sync 已经同步过（`syncStatus = 2`），在 `moz_bookmarks_deleted` 留删除记录。
+  - 目标里还有的行原地更新，保留行号和 GUID，只在确实有变化时增加 `syncChangeCounter` 并更新 `lastModified`。
+  - 新书签插入时生成新 GUID，`syncStatus = 1`。
+  - 只重排有改动的文件夹，分隔线保留原来的位置。
+  - 标签、根目录、移动设备书签一律不碰。
+  - 可选的列和表（`syncStatus`、`syncChangeCounter`、`moz_bookmarks_deleted` 等）先检测再使用，兼容旧版数据库结构。
+- **仍需实测**：和 Firefox Sync 一起使用的往返效果（C 类实测矩阵）。Firefox 的移动设备书签根目录仍不读也不写。
 
 ### S4 Firefox“书签菜单”被复制（P0，待确认）
 
 - **现象**：读取时 `getPath` 把 ID 1/2/4 都当作 `other`（`FirefoxParser.swift:87`），因此“书签菜单”（2）下的书签以 `other:` 开头、`parentId` 为空，也就是被视为“其他书签”的根级条目。写入时只清空 3 和 5，再把 `other` 的内容插进 5。结果是菜单里的原条目还在，5 下面又多了一份；下次读取时同一个 ID 出现两次，第二份变成 `:dup1`。
 - **修复思路**：先写测试确认这个现象；再决定“书签菜单”是独立映射（和 Safari 的 BookmarksMenu 对应），还是明确只读、不参与同步（见 M2）。
 - **验收**：含“书签菜单”条目的 fixture 写入两次后，总条目数不变。
+- **实现**：随 S3 一起修复。增量写入会原地更新书签菜单里的条目，不再往“其他书签”里重新插入一份；新增的 `other` 书签放进“其他书签”。读取规则不变（菜单仍按 `other` 读），所以书签 ID 不变、不需要迁移。之前已经复制出来的重复条目会保留，需要用户手动删除。
 
 ### M1 网址匹配过于激进（P1）
 
