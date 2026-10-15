@@ -71,6 +71,15 @@ struct TrayMenu: View {
                 Spacer()
 
                 HStack(spacing: 4) {
+                    Button(action: {
+                        viewModel.rescanProfiles()
+                        viewModel.syncEngine?.triggerSync(changedPaths: [], forceImmediate: true)
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.plain)
+                    .help("Rescan Profiles")
+
                     if viewModel.profileSets.count > 1 {
                         ForEach(viewModel.profileSets) { pSet in
                             Button(action: {
@@ -81,7 +90,7 @@ struct TrayMenu: View {
                                 ProfileSetIcon(name: pSet.name, isActive: viewModel.selectedProfileSetId == pSet.id)
                             }
                             .buttonStyle(.plain)
-                            .help(pSet.name)
+                            .help(L10n.profileSetName(pSet.name))
                         }
                     }
 
@@ -130,6 +139,11 @@ struct TrayMenu: View {
                                 .foregroundColor(.secondary)
                                 .lineLimit(nil)
 
+                            Text("If access is already enabled, remove BookmarkSync from the list, add the current app again, then quit and reopen it.")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+
                             Button("Open System Settings") {
                                 if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
                                     NSWorkspace.shared.open(url)
@@ -165,7 +179,7 @@ struct TrayMenu: View {
                                         .foregroundColor(.secondary)
                                     Spacer()
                                     ProfileSetIcon(name: otherSetName, isActive: false)
-                                        .help("Syncing in \(otherSetName)")
+                                        .help(L10n.format("Syncing in %@", L10n.profileSetName(otherSetName)))
                                 } else {
                                     Toggle(config.profileName, isOn: Binding(
                                         get: { config.isEnabled && config.profileSetId == viewModel.selectedProfileSetId },
@@ -227,6 +241,11 @@ struct TrayMenu: View {
                                         .padding(.leading, 4)
                                     }
 
+                                    if viewModel.unavailableProfileIds.contains(config.id) {
+                                        Image(systemName: "exclamationmark.triangle")
+                                            .foregroundColor(.orange)
+                                            .help("Profile temporarily unavailable. Saved configuration and bookmarks are preserved.")
+                                    }
                                     Spacer()
                                 }
                             }
@@ -281,7 +300,7 @@ struct TrayMenu: View {
             }
         }
         .padding()
-        .frame(width: 280)
+        .frame(width: 320)
         .onAppear {
             if !hasSeenOnboarding {
                 handleWindow(id: "onboarding", title: "Welcome to BookmarkSync", forceNew: false)
@@ -290,6 +309,7 @@ struct TrayMenu: View {
             viewModel.modelContext = modelContext
             viewModel.loadProfileSets()
             viewModel.rescanProfiles()
+            viewModel.syncEngine?.triggerSync(changedPaths: [], forceImmediate: true)
         }
     }
 
@@ -306,7 +326,7 @@ struct TrayMenu: View {
                 tracked = nil
             }
             
-            let existing = NSApp.windows.filter { $0.title == title }
+            let existing = NSApp.windows.filter { $0.title == L10n.text(title) }
             
             // Fallback hierarchy: 
             // 1. Tracked window on current space

@@ -1,5 +1,7 @@
 # BookmarkSync
 
+[简体中文说明](README.zh-CN.md) · English
+
 A local-first, serverless macOS tray application that dynamically synchronizes bookmarks across multiple browsers (Safari, Chromium-based browsers, and Firefox) without relying on external cloud APIs or databases. 
 
 By directly merging local browser bookmark files, it leverages each browser's native cloud synchronization mechanisms (iCloud, Google Sync, Firefox Sync) to seamlessly propagate updates to all of your other devices.
@@ -90,3 +92,23 @@ brew install xcodegen
 ## 📂 Detailed Onboarding & History
 
 For in-depth explanations on the dynamic file watcher, SwiftUI picker bugs, detached SwiftData context crashes, and lock-resilient synchronization, refer to the [AGENTS.md](file:///Users/yak0001v/projects/bookmarksync/AGENTS.md) file inside the project root.
+
+
+## Interface languages
+
+The app includes English and Simplified Chinese (`zh-Hans`) using native macOS
+localization. It follows the system language by default. To override it, open
+**System Settings → General → Language & Region → Applications**, add
+**BookmarkSync**, and choose English or Simplified Chinese. Quit and reopen the
+app after changing the language.
+
+Localization resources live in `BookmarkSync/Localization/{language}.lproj`.
+SwiftUI literals use `Localizable.strings`; runtime messages use `L10n` and search
+counts use `Localizable.stringsdict`. Add matching keys and format arguments in
+both languages. Run `python3 scripts/check_localizations.py` before submitting.
+The macOS workflow also builds the app and runs the XCTest suite, including
+resource packaging and formatting checks.
+
+Bookmark titles, browser profile names, stored `Set N` names, activity tokens,
+and the `Deleted by BookmarkSync` archive folder remain unchanged on disk.
+Only generated group labels and activity prefixes are translated for display.

@@ -139,7 +139,7 @@ struct BookmarksTreeView: View {
                         ProfileSetIcon(name: pSet.name, isActive: filterProfileSetId == pSet.id)
                     }
                     .buttonStyle(.plain)
-                    .help(pSet.name)
+                    .help(L10n.profileSetName(pSet.name))
                 }
 
                 if filterProfileSetId != "global" {
@@ -179,7 +179,7 @@ struct BookmarksTreeView: View {
                 .foregroundColor(.secondary)
                 .help("Collapse All")
             } else {
-                Text("\(searchResults.count) found")
+                Text(verbatim: L10n.format("bookmarks_found", searchResults.count))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -409,7 +409,7 @@ struct BookmarksTreeView: View {
         return BookmarksTreeView(viewModel: AppViewModel())
             .modelContainer(container)
     } catch {
-        return Text("Failed to create container: \(error.localizedDescription)")
+        return Text(verbatim: L10n.format("Failed to create container: %@", error.localizedDescription))
     }
 }
 
@@ -446,6 +446,6 @@ struct BookmarksTreeView: View {
         return BookmarksTreeView(viewModel: viewModel)
             .modelContainer(container)
     } catch {
-        return Text("Failed to create container: \(error.localizedDescription)")
+        return Text(verbatim: L10n.format("Failed to create container: %@", error.localizedDescription))
     }
 }
