@@ -51,7 +51,10 @@ class WriteQueue {
         queueLock.lock()
         let matching = queue.filter { $0.parser.filePath.path == bookmarkFilePath }
         queue.removeAll { $0.parser.filePath.path == bookmarkFilePath }
+        let queuedBundleIds = Set(queue.map { $0.bundleId })
         queueLock.unlock()
+        let running = Set(NSWorkspace.shared.runningApplications.filter { !$0.isTerminated }.compactMap { $0.bundleIdentifier })
+        publishAwaitingQuit(queuedBundleIds.intersection(running))
         
         for pending in matching {
             DispatchQueue.main.async { [weak self] in
@@ -94,7 +97,17 @@ class WriteQueue {
             }
         }
         queue = remaining
+        let awaitingQuit = Set(remaining.map { $0.bundleId }.filter { runningApps.contains($0) })
         queueLock.unlock()
+        publishAwaitingQuit(awaitingQuit)
+    }
+
+    /// Tells the menu bar which browsers must be quit before their writes land.
+    private func publishAwaitingQuit(_ bundleIds: Set<String>) {
+        DispatchQueue.main.async { [weak self] in
+            guard let viewModel = self?.viewModel, viewModel.browsersAwaitingQuit != bundleIds else { return }
+            viewModel.browsersAwaitingQuit = bundleIds
+        }
     }
     
     @objc private func handleAppTermination(_ notification: Notification) {

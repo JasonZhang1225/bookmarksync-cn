@@ -13,6 +13,17 @@ class AppViewModel: ObservableObject {
     @Published var unavailableProfileIds: Set<String> = []
     @Published var latestBrowserNodes: [String: [String: ParsedBookmark]] = [:]
 
+    /// Profiles whose bookmark file could not be read on the last pass.
+    @Published var readFailedConfigIds: Set<String> = []
+    /// Browsers with writes queued until the user quits them.
+    @Published var browsersAwaitingQuit: Set<String> = []
+
+    /// Profiles whose pre-existing empty folders have been added to the hub.
+    var migratedEmptyFolderConfigIds: Set<String> {
+        get { Set(UserDefaults.standard.stringArray(forKey: EmptyFolderMigration.defaultsKey) ?? []) }
+        set { UserDefaults.standard.set(Array(newValue).sorted(), forKey: EmptyFolderMigration.defaultsKey) }
+    }
+
     /// Profiles whose deletions `DeletionGuard` is holding, by config id.
     @Published var deletionHolds: [String: PendingDeletionHold] = [:]
     /// Deletions the user confirmed, by config id; consumed once applied.
