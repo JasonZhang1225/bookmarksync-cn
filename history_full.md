@@ -36,3 +36,10 @@
 - 原因/决策：用户实机试用发现“恢复后提示删 83 个、确认后没变少”——旧轮换使恢复错位（B1），且恢复时 Chrome 开着、退出时覆盖了恢复结果；提示只显示数量，无法判断。
 - 验证：macOS CI（Xcode 27）90 个测试全部通过，含新增 `BackupStoreTests`（含恢复准确性回归测试）、`BackupRetentionTests`、`BookmarkDiffTests`。
 - 未验证：界面效果与真实恢复流程，留到实机验证第 1 轮。
+
+## 2026-10-15 CI 固定签名（PR #5，`codex/persistent-ci-signing`，计划 E2，Codex 实施）
+
+- 改动：CI 改用专用固定自签名证书签名（`scripts/sign_app.sh`，一次性钥匙串），公钥 `signing/BookmarkSync-Signing.crt` 进 Git，私钥 P12 与密码只在仓库 Secrets 和用户本机私有备份；`scripts/check_signing_identity.sh` 模拟更新后要求 designated requirement 不变；Fork PR 只编译测试，缺 Secrets 时打包失败、不退回 ad-hoc。说明见 `docs/ci-signing.md`。
+- 原因/决策：ad-hoc 签名每次构建身份都变，用户每装一次都要重新授予完全磁盘访问权限。
+- 验证：CI run `38757143393` 与合并 main 后的 `38758121528` 均通过；designated requirement 为 `identifier "app.xazi.BookmarkSync" and certificate root = H"c46362f9…"`。
+- 未验证：两个固定签名版本之间 TCC 授权是否真的保留（实机验证第 1 轮第 1 项）；从 ad-hoc 版切换需最后授权一次。

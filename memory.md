@@ -1,19 +1,19 @@
 # BookmarkSync 中文分支实时工作记忆
 
 > 最后更新：2026-10-15。
-> 当前分支：`codex/persistent-ci-signing`（E2 固定 CI 签名，PR #5）；`main` = 上游 `13485d1` + PR #1（本地化 + CI）+ PR #2（工程化文档）+ PR #3（S1/S2 删除保护）+ PR #4（B1–B3 备份与差异）。
-> 未合入：PR #5（E2）。
+> 当前分支：`fix/m3-u1-empty-folders-write-wait`（批次 3，PR #6）；`main` = 上游 `13485d1` + PR #1（本地化 + CI）+ PR #2（工程化文档）+ PR #3（S1/S2 删除保护）+ PR #4（B1–B3 备份与差异）+ PR #5（E2 固定签名）。
+> 未合入：PR #6（M3 空文件夹、U1 写入等待提示）。
 > 阶段计划：`docs/plan/2026-10-phase1-safety.md`（第一阶段：防丢数据与匹配正确性；2026-10-15 已按“攒批实机验证”重排）。
 > 已完成工作的细节见 `history_full.md` 末尾日志。
 
 ## 进行中
 
-- E2（PR #5，Codex 实施）：固定自签名证书已生成，两个仓库 Secrets 已配置；公钥进 Git（`signing/BookmarkSync-Signing.crt`），私钥和密码仅存本机私有备份与 Secrets。签名脚本用临时钥匙串并验证证书锚点。CI run `38757143393`：designated requirement 为 `identifier "app.xazi.BookmarkSync" and certificate root = H"c46362f9…"`，改动内容后重签仍满足同一要求。TCC 跨版本授权保留尚待实测；从 ad-hoc 版切换到此证书需最后授权一次。详见 `docs/ci-signing.md`。
-- 批次 1b（PR #4）已合入，界面效果等实机验证第 1 轮。
+- 批次 3（PR #6，`fix/m3-u1-empty-folders-write-wait`）：中枢保留空文件夹，旧中枢一次性补录（`EmptyFolderMigration`，记录在 `UserDefaults` 的 `emptyFolderMigratedConfigIds`）；菜单栏 `WriteWaitBanner` 显示“需要退出哪个浏览器才能写入”；读取失败的配置显示提示图标。CI 93 个测试全部通过。
+- 批次 1b（PR #4）、E2（PR #5）已合入，界面效果和跨版本授权等实机验证第 1 轮。
 
 ## 当前痛点
 
-- 用户每装一次 CI 包都要重新授予完全磁盘访问权限（ad-hoc 签名）；E2 合入后应只需再授权一次，仍按“攒批实机验证”进行，见计划“实机验证第 1 轮清单”。
+- E2 已合入：从 ad-hoc 版换到固定签名版需最后授权一次；之后两版之间授权是否保留，要在实机验证第 1 轮确认。仍按“攒批实机验证”进行。
 - 用户 2026-10-15 第一次实机试用（PR #3 的 CI 包）：Chrome 删除一个书签后，其他浏览器很快同步；Edge 的 `Deleted by BookmarkSync` 过一阵才出现（推测 Edge 当时开着，写入在排队，U1）；恢复备份后提示删除 83 个、确认后书签没变少（B1 + 恢复时 Chrome 开着）。
 - 网址匹配过于激进：忽略端口、路径和参数转小写（M1）；修复时会改变书签 ID，必须带迁移。
 - Firefox 每次写入都整体删除重建并换新 GUID（S3），与 Firefox Sync 一起用的风险未验证。
@@ -29,6 +29,6 @@
 
 ## 接下来
 
-1. 合入 PR #5（E2），之后的 CI 包都用固定证书签名。
+1. 合入 PR #6。
 2. 批次 3：M3 空文件夹被删、U1 写入等待提示（含读取失败提示）。
 3. 批次 1b、3 合入后，做实机验证第 1 轮（清单见计划）。
