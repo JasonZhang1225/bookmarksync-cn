@@ -87,7 +87,7 @@ class WriteQueue {
                 } catch {
                     SyncLog.error("Write failed for \(pending.bundleId): \(error)")
                     DispatchQueue.main.async { [weak self] in
-                        self?.viewModel?.queueError = "Write error (\(pending.bundleId)): \(error.localizedDescription)"
+                        self?.viewModel?.queueError = L10n.format("Write error (%@): %@", pending.bundleId, error.localizedDescription)
                     }
                     remaining.append(pending)
                 }

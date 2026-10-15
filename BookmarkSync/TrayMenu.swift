@@ -81,7 +81,7 @@ struct TrayMenu: View {
                                 ProfileSetIcon(name: pSet.name, isActive: viewModel.selectedProfileSetId == pSet.id)
                             }
                             .buttonStyle(.plain)
-                            .help(pSet.name)
+                            .help(L10n.profileSetName(pSet.name))
                         }
                     }
 
@@ -165,7 +165,7 @@ struct TrayMenu: View {
                                         .foregroundColor(.secondary)
                                     Spacer()
                                     ProfileSetIcon(name: otherSetName, isActive: false)
-                                        .help("Syncing in \(otherSetName)")
+                                        .help(L10n.format("Syncing in %@", L10n.profileSetName(otherSetName)))
                                 } else {
                                     Toggle(config.profileName, isOn: Binding(
                                         get: { config.isEnabled && config.profileSetId == viewModel.selectedProfileSetId },
@@ -281,7 +281,7 @@ struct TrayMenu: View {
             }
         }
         .padding()
-        .frame(width: 280)
+        .frame(width: 320)
         .onAppear {
             if !hasSeenOnboarding {
                 handleWindow(id: "onboarding", title: "Welcome to BookmarkSync", forceNew: false)
@@ -306,7 +306,7 @@ struct TrayMenu: View {
                 tracked = nil
             }
             
-            let existing = NSApp.windows.filter { $0.title == title }
+            let existing = NSApp.windows.filter { $0.title == L10n.text(title) }
             
             // Fallback hierarchy: 
             // 1. Tracked window on current space
