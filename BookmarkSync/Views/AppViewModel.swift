@@ -165,6 +165,7 @@ class AppViewModel: ObservableObject {
         case mismatch = "Mismatch"
         case writePending = "Write Pending"
         case disabled = "Disabled"
+        case notSyncedHere = "Not Synced Here"
         case unknown = "Unknown"
     }
 
@@ -179,6 +180,12 @@ class AppViewModel: ObservableObject {
 
         guard let context = modelContext else {
             return .unknown
+        }
+
+        // A bookmark under a root this browser lacks is never written to it.
+        guard BookmarkRoots.supported(bundleId: config.bundleId, profileName: config.profileName)
+            .contains(BookmarkRoots.root(of: nodeId)) else {
+            return .notSyncedHere
         }
 
         // Reconstruct the real database ID with this config's profileSetId prefix

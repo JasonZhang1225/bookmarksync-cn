@@ -28,7 +28,7 @@
 | S3 | P0 | Firefox 写入时整体删除重建、换新 GUID，并清掉分隔线 | `FirefoxParser.swift:204-298` | 待修复 |
 | S4 | P0 | Firefox“书签菜单”里的书签被复制进“其他书签”，越写越多 | `FirefoxParser.swift:85-87, 258-259` | 待确认后修复 |
 | M1 | P1 | 网址匹配过于激进：忽略端口，路径和参数转小写 | `BookmarkNode.swift:4-36` | 进行中（`fix/m1-url-matching`） |
-| M2 | P1 | 各浏览器根目录映射不一致，导致部分书签永远同步不过去、反复写入 | `SafariParser+Write.swift:133-134`；`FirefoxParser.swift:52-53` | 待修复 |
+| M2 | P1 | 各浏览器根目录映射不一致，导致部分书签永远同步不过去、反复写入 | `SafariParser+Write.swift:133-134`；`FirefoxParser.swift:52-53` | 进行中（`fix/m2-root-mapping`） |
 | M3 | P1 | 新建的空文件夹会在所有浏览器中被删除 | `SyncEngine+Execute.swift:326, 420-426` | 已完成（PR #6） |
 | M4 | P1 | 重名书签/文件夹的 `:dupN` 后缀依赖顺序，调整顺序就变成删除 + 新增 | 三个解析器的 `seenKeys` | 待评估 |
 | C1 | P1 | Chrome 写入删掉 `checksum`、只在关闭时改文件，与 Google 同步是否兼容未验证 | `ChromeParser.swift:323` | 待实测 |
@@ -127,6 +127,8 @@
   - Firefox 的“书签菜单”和“移动设备书签”没有映射（见 S4）。
 - **修复思路**：定义一张统一的根目录映射表（写进 `DESIGN.md` 第 6 节的中文补充或计划附录）。目标浏览器没有对应根目录的条目要么映射到约定位置（例如 Safari 的 BookmarksMenu 下一个固定子文件夹），要么明确不同步；无论哪种，导出阶段都不能把这些条目算作“不一致”。
 - **验收**：Chrome 移动设备书签存在时，Safari 和 Firefox 写入一次后，下一轮同步没有待写入项。
+- **实现（`fix/m2-root-mapping`）**：新增 `BookmarkRoots`，集中定义每种浏览器支持的根目录：Chromium 三个都有；Safari 默认配置只有书签栏和“其他”（书签菜单）；Safari 命名配置只有书签栏；Firefox 只有书签栏和“其他”。导出比较时跳过目标浏览器没有的根目录，不再判为“缺少”，也就不会每轮重复写入。书签详情里这些书签对该浏览器显示“此浏览器不同步”。
+- **决策**：采用“明确不同步”，而不是映射到某个替代位置。映射到别处会改变书签在那个浏览器里的 ID，导致来回删除和新增。Firefox 的移动设备书签根目录放到 S3（增量写入）里一起评估。
 
 ### M3 空文件夹被删除（P1）
 

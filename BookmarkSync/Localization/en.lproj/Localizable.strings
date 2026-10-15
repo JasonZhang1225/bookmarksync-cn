@@ -122,3 +122,4 @@
 "Restored the backup from %@. Bookmarks it lacks will also be removed from your other browsers; a large removal is held in the menu bar for your confirmation first." = "Restored the backup from %@. Bookmarks it lacks will also be removed from your other browsers; a large removal is held in the menu bar for your confirmation first.";
 "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough." = "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough.";
 "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again." = "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again.";
+"Not Synced Here" = "Not Synced Here";

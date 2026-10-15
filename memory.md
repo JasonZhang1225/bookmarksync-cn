@@ -2,13 +2,14 @@
 
 > 最后更新：2026-10-15。
 > 当前分支：`docs/after-batch-3`（仅文档）；`main` = 上游 `13485d1` + PR #1–#6（本地化与 CI、工程化文档、S1/S2 删除保护、B1–B3 备份与差异、E2 固定签名、M3/U1）。
-> 未合入：`fix/m1-url-matching`（批次 4：M1 网址匹配 + ID 迁移、E1）。批次 0–3 已全部合入。
+> 未合入（按顺序叠放，需按顺序合并）：PR #8 `fix/m1-url-matching`（批次 4）→ `fix/m2-root-mapping`（批次 5）。批次 0–3 已全部合入。
 > 阶段计划：`docs/plan/2026-10-phase1-safety.md`（第一阶段：防丢数据与匹配正确性；2026-10-15 已按“攒批实机验证”重排）。
 > 已完成工作的细节见 `history_full.md` 末尾日志。
 
 ## 进行中
 
 - 批次 4（`fix/m1-url-matching`）：`normalizeURL` 保留路径 / 参数大小写和非默认端口；`BookmarkIdMigration` 在第一次同步前重算中枢与观察基线里的书签 ID；README 两处修正。新增 `URLMatchingTests`。靠 PR CI 验证。
+- 批次 5（`fix/m2-root-mapping`）：`BookmarkRoots` 定义各浏览器支持的根目录，导出比较跳过不支持的根目录（Chrome 移动设备书签不再让 Safari / Firefox 每轮重复写入）；详情页显示“此浏览器不同步”。新增 `RootMappingTests`。
 - 实机验证第 1 轮：用户 2026-10-15 已在 Mac 上验证备份对比与恢复（通过）；跨版本授权保留、暂停删除与查看详情、空文件夹保留、写入等待提示尚未测，用户决定先推进新功能，留到下一轮一起测。
 
 ## 当前痛点

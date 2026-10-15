@@ -493,7 +493,13 @@ extension SyncEngine {
                         changeTitles.append(title)
                     }
 
+                    // Bookmarks under a root this browser does not have can never
+                    // be written to it; comparing them would only re-queue the
+                    // same write forever. See `BookmarkRoots`.
+                    let supportedRoots = BookmarkRoots.supported(bundleId: config.bundleId, profileName: config.profileName)
+
                     for (id, stateNode) in stateDict {
+                        guard supportedRoots.contains(BookmarkRoots.root(of: id)) else { continue }
                         if let currentNode = currentDict[id] {
                             if currentNode.title != stateNode.title || currentNode.url != stateNode.url || currentNode.parentId != stateNode.parentId {
                                 noteChange("Update: \(stateNode.title)")
