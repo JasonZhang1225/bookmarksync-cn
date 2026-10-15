@@ -9,3 +9,8 @@ Website/assets/BookmarkSync.dmg
 
 # 本机验证产物（截图、日志、真实书签文件副本），不进 Git
 .artifacts/
+
+# 私有签名材料不进 Git；公钥证书保存在 signing/。
+*.p12
+*.pfx
+*.key

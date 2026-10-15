@@ -29,3 +29,10 @@
 - 原因/决策：只冻结出问题的那一个配置，同组其他浏览器照常同步（中枢里书签还在，其他浏览器不受影响）。
 - 验证：macOS CI（Xcode 27）79 个测试全部通过，其中新增 16 个（`DeletionGuardTests` 5、`ParserStructureTests` 7、`DeletionHoldIntegrationTests` 4）。
 - 实机：用户试用 CI 包时触发了暂停提示，但提示只显示数量，并暴露出备份恢复错位的问题（B1），转入批次 1b。
+
+## 2026-10-15 备份时间戳、准确恢复与逐条差异（PR #4，`fix/backup-restore-and-diff`，计划 B1–B3）
+
+- 改动：新增 `BackupStore`：备份按时间戳命名、不再改名；最近 7 天全留、7–30 天每天一份、总数上限 200，旧版 `.backup.N` / `daily` 照常列出且不清理；恢复先另存当前文件、再整体替换为所选备份，Firefox 恢复后清理旧 WAL；目标浏览器运行时拒绝恢复；恢复后用应用自己的同步引擎。新增 `BookmarkDiff` / `BookmarkDiffList`（+ − ~）；暂停删除提示条可查看详情；备份管理改为先对比再恢复。
+- 原因/决策：用户实机试用发现“恢复后提示删 83 个、确认后没变少”——旧轮换使恢复错位（B1），且恢复时 Chrome 开着、退出时覆盖了恢复结果；提示只显示数量，无法判断。
+- 验证：macOS CI（Xcode 27）90 个测试全部通过，含新增 `BackupStoreTests`（含恢复准确性回归测试）、`BackupRetentionTests`、`BookmarkDiffTests`。
+- 未验证：界面效果与真实恢复流程，留到实机验证第 1 轮。

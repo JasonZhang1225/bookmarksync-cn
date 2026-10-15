@@ -22,9 +22,9 @@
 | --- | --- | --- | --- | --- |
 | S1 | P0 | 结构异常或读到空结果时被当作“全部删除” | `SafariParser.swift:14-17, 36`；`FirefoxParser.swift:22-24`；`SyncEngine+Execute.swift:237-260` | 已完成（PR #3）；读取失败的界面提示并入 U1 |
 | S2 | P0 | 没有大批量删除保护（`DESIGN.md` 第 8 节写了，代码里没有） | `SyncEngine+Execute.swift` 导入阶段 | 已完成（PR #3）；逐条差异见 B3 |
-| B1 | P0 | 恢复备份时恢复的不是所选那一份；恢复时另起一个同步引擎；浏览器运行中恢复会被覆盖 | `BackupsView.swift` `restoreBackup`；`BrowserParser.performBackup` | 进行中（`fix/backup-restore-and-diff`） |
-| B2 | P1 | 备份只有 `.backup.1/2/3` 三份轮换 + 7 份每日，名字看不出时间 | `BrowserParser.performBackup` | 进行中（`fix/backup-restore-and-diff`） |
-| B3 | P1 | 暂停删除和备份恢复只显示数量，看不到具体是哪些书签 | `DeletionHoldBanner`；`BackupsView` | 进行中（`fix/backup-restore-and-diff`） |
+| B1 | P0 | 恢复备份时恢复的不是所选那一份；恢复时另起一个同步引擎；浏览器运行中恢复会被覆盖 | `BackupsView.swift` `restoreBackup`；`BrowserParser.performBackup` | 已完成（PR #4） |
+| B2 | P1 | 备份只有 `.backup.1/2/3` 三份轮换 + 7 份每日，名字看不出时间 | `BrowserParser.performBackup` | 已完成（PR #4） |
+| B3 | P1 | 暂停删除和备份恢复只显示数量，看不到具体是哪些书签 | `DeletionHoldBanner`；`BackupsView` | 已完成（PR #4） |
 | S3 | P0 | Firefox 写入时整体删除重建、换新 GUID，并清掉分隔线 | `FirefoxParser.swift:204-298` | 待修复 |
 | S4 | P0 | Firefox“书签菜单”里的书签被复制进“其他书签”，越写越多 | `FirefoxParser.swift:85-87, 258-259` | 待确认后修复 |
 | M1 | P1 | 网址匹配过于激进：忽略端口，路径和参数转小写 | `BookmarkNode.swift:4-36` | 待修复 |
@@ -37,7 +37,7 @@
 | U2 | P2 | `Deleted by BookmarkSync` 文件夹只增不减，并随云同步出现在手机上 | 三个解析器的 `write()` | 待设计 |
 | U3 | P2 | 写入队列只在内存中；“自己刚写过的文件 5 秒内忽略”属于经验值 | `WriteQueue.swift`；`SyncEngine.swift:31` | 待评估 |
 | E1 | P2 | README 的说明与代码不符（README 说会去掉查询参数，实际保留），AGENTS 链接是原作者本机路径 | `README.md:16, 92` | 随 M1 修 |
-| E2 | P1 | CI 包是 ad-hoc 签名，每次安装新版本都要重新授予“完全磁盘访问权限” | `.github/workflows/macos.yml` | 待修复（需要用户配合，见详情） |
+| E2 | P1 | CI 包是 ad-hoc 签名，每次安装新版本都要重新授予“完全磁盘访问权限” | `.github/workflows/macos.yml` | 进行中（PR #5，`codex/persistent-ci-signing`） |
 | D1 | 设计 | 书签身份模型：改为中枢自有 UUID + 各浏览器原生 ID 对照表 | — | 本阶段只出设计 |
 | D2 | 设计 | 浏览器运行中也能同步：Chromium/Firefox 配套扩展 | — | 本阶段只出设计 |
 
@@ -93,6 +93,9 @@
 - **方案 A（推荐，改 CI）**：用户在“钥匙串访问”里创建一个自签名的代码签名证书（例如“BookmarkSync Dev”），导出为 `.p12`，作为 GitHub Secrets（证书内容 + 密码）存进仓库；CI 打包时导入临时钥匙串，用这个固定证书签名。签名身份不变，授权一次后长期有效。
 - **方案 B**：用户在本机用 Xcode、以自己的 Apple ID（免费 Personal Team）构建运行。签名同样稳定，但每次都要本机构建。
 - **验收**：连续安装两个不同 CI 构建，第二次不需要重新授权。
+- **实现（PR #5，Codex，采用方案 A）**：专用固定自签名证书；公钥 `signing/BookmarkSync-Signing.crt` 进 Git，私钥 P12 和密码只在仓库 Secrets（`MACOS_SIGNING_P12_BASE64`、`MACOS_SIGNING_P12_PASSWORD`）与用户本机私有备份中。`scripts/sign_app.sh` 导入一次性钥匙串签名并校验证书锚点；`scripts/check_signing_identity.sh` 模拟更新（改资源后重签），要求 designated requirement 不变。同仓库 PR / 手动运行才签名打包，Fork PR 只编译测试；缺少 Secrets 时打包失败，不退回 ad-hoc。说明见 `docs/ci-signing.md`。
+- **已验证**：CI run `38757143393` 中 designated requirement 为 `identifier "app.xazi.BookmarkSync" and certificate root = H"c46362f9…"`，跨版本检查通过。
+- **未验证**：真实 TCC 授权在两个固定签名版本之间是否保留（实机验证第 1 轮第 1 项）。从 ad-hoc 版切换到此证书仍需最后授权一次。
 
 ### S3 Firefox 写入方式（P0）
 
@@ -170,8 +173,8 @@
 | --- | --- | --- | --- |
 | 0 | PR #1 本地化 + macOS CI；PR #2 工程化文档 | 已合入 | CI |
 | 1 | S1 空读取保护、S2 大批量删除保护 | 已合入（PR #3） | XCTest + CI |
-| 1b | B1 恢复错位、B2 备份时间戳与保留、B3 逐条差异 | 进行中 | XCTest + CI |
-| 2 | E2 固定签名（需要用户先创建证书并配置 Secrets） | 尽早做，后面每轮安装都受益 | 连续装两个构建，不再要求授权 |
+| 1b | B1 恢复错位、B2 备份时间戳与保留、B3 逐条差异 | 已合入（PR #4） | XCTest + CI |
+| 2 | E2 固定签名 | 进行中（PR #5，CI 已通过） | 连续装两个构建，不再要求授权 |
 | 3 | M3 空文件夹被删、U1 写入等待提示（含读取失败提示） | 批次 1b | XCTest + CI |
 | ★ | **实机验证第 1 轮**：批次 1–3 一起测 | 批次 1b、3 合入（最好 2 也完成） | 见下方清单 |
 | 4 | M1 网址匹配 + ID 迁移、E1 文档修正 | 第 1 轮通过 | 规范化测试、迁移测试 + CI |
