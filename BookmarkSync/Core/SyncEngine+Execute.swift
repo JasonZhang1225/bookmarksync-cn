@@ -80,7 +80,7 @@ extension SyncEngine {
         viewModel.syncStatus = "Syncing..."
 
         let allConfigs = (try? modelContext.fetch(FetchDescriptor<BrowserConfig>())) ?? []
-        let enabledConfigs = allConfigs.filter { $0.isEnabled && $0.profileSetId != nil && !$0.profileSetId!.isEmpty }
+        let enabledConfigs = allConfigs.filter { $0.isEnabled && !viewModel.unavailableProfileIds.contains($0.id) && $0.profileSetId != nil && !$0.profileSetId!.isEmpty }
 
         updateWatcher(activeConfigs: enabledConfigs)
 
@@ -124,7 +124,7 @@ extension SyncEngine {
 
         do {
             let allConfigs = try modelContext.fetch(FetchDescriptor<BrowserConfig>())
-            let enabledConfigs = allConfigs.filter { $0.isEnabled && $0.profileSetId != nil && !$0.profileSetId!.isEmpty }
+            let enabledConfigs = allConfigs.filter { $0.isEnabled && !viewModel.unavailableProfileIds.contains($0.id) && $0.profileSetId != nil && !$0.profileSetId!.isEmpty }
 
             guard !enabledConfigs.isEmpty else {
                 viewModel.syncStatus = "Idle"

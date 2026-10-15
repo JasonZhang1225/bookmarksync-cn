@@ -89,7 +89,7 @@ struct BackupsView: View {
                                                 .cornerRadius(4)
                                         }
                                     }
-                                    Text("Modified: \(formattedDate(item.dateModified))")
+                                    Text(verbatim: L10n.format("Modified: %@", formattedDate(item.dateModified)))
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -192,7 +192,7 @@ struct BackupsView: View {
             try fm.removeItem(at: liveURL)
             try fm.copyItem(at: item.fileURL, to: liveURL)
             
-            alertMessage = "Successfully restored \(item.name) over live bookmarks."
+            alertMessage = L10n.format("Successfully restored %@ over live bookmarks.", item.name)
             showAlert = true
             
             // Reload backups list
@@ -203,7 +203,7 @@ struct BackupsView: View {
                 engine.triggerSync(changedPaths: [])
             }
         } catch {
-            alertMessage = "Restore failed: \(error.localizedDescription)"
+            alertMessage = L10n.format("Restore failed: %@", error.localizedDescription)
             showAlert = true
         }
     }
@@ -216,6 +216,6 @@ struct BackupsView: View {
         return BackupsView(viewModel: AppViewModel())
             .modelContainer(container)
     } catch {
-        return Text("Failed to create container: \(error.localizedDescription)")
+        return Text(verbatim: L10n.format("Failed to create container: %@", error.localizedDescription))
     }
 }
