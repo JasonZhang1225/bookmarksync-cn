@@ -53,6 +53,7 @@ struct BookmarkSyncApp: App {
         if engine == nil {
             viewModel.modelContext = sharedModelContainer.mainContext
             viewModel.loadProfileSets()
+            viewModel.rescanProfiles()
 
             let newEngine = SyncEngine(modelContext: sharedModelContainer.mainContext, viewModel: viewModel)
             engine = newEngine

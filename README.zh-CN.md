@@ -54,3 +54,14 @@ xcodebuild test -project BookmarkSync.xcodeproj -scheme BookmarkSync \
 本地化资源位于 `BookmarkSync/Localization/en.lproj` 与 `zh-Hans.lproj`。
 增加文案时请同时更新两种语言，保留格式占位符；动态文案通过 `L10n` 查找，
 搜索数量通过 `Localizable.stringsdict` 处理复数。PR 会触发 macOS 构建和 XCTest 检查。
+
+## 替换旧版后权限提示仍出现
+
+CI 下载包使用临时签名。替换应用后，macOS 可能不再认可旧应用的完全磁盘访问授权，
+即使系统设置里的开关仍然打开。请先退出 BookmarkSync，在 **系统设置 → 隐私与安全性 →
+完全磁盘访问权限** 中移除旧条目，再添加 `/Applications/BookmarkSync.app`，打开权限并重新启动应用。
+菜单栏“浏览器配置”旁的刷新按钮可以重新扫描。
+
+扫描结果不完整时，应用会保留已有配置、启用状态和书签，并暂停无法访问的配置。
+Chrome、Edge 和 Firefox 的显示名称变化时，优先按书签文件路径识别原配置。
+已经被旧版删除的应用内数据需要从备份恢复，或在浏览器配置重新启用后导入。

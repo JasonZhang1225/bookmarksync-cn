@@ -10,6 +10,7 @@ class AppViewModel: ObservableObject {
     @Published var isFullDiskAccessGranted: Bool = true
     @Published var isWatchingEnabled: Bool = true
     @Published var isWritingEnabled: Bool = true
+    @Published var unavailableProfileIds: Set<String> = []
     @Published var latestBrowserNodes: [String: [String: ParsedBookmark]] = [:]
 
     /// Bumped whenever the sync engine commits bookmark changes.
@@ -77,38 +78,50 @@ class AppViewModel: ObservableObject {
         let discovered = BrowserDiscoverer.discover()
         self.isFullDiskAccessGranted = BrowserDiscoverer.isSafariAccessGranted
 
-        let existing = (try? context.fetch(FetchDescriptor<BrowserConfig>())) ?? []
-        let existingIds = Set(existing.map { $0.id })
-        let discoveredIds = Set(discovered.map { "\($0.bundleId):\($0.profileName)" })
+        reconcileProfiles(discovered)
+    }
 
-        // Remove configs that no longer exist on disk
-        for config in existing {
-            if !discoveredIds.contains(config.id) {
-                if config.isEnabled {
-                    config.isEnabled = false
-                    WriteQueue.shared.removePendingWrites(for: config.bookmarkFilePath)
-                    removeDiffs(for: config.bundleId, profileName: config.profileName)
-                    if let setId = config.profileSetId {
-                        cleanOrphanedNodes(for: setId)
-                    }
-                }
-                context.delete(config)
+    /// Discovery can be incomplete after an app replacement or permission change.
+    /// Absence is not evidence that a user deleted a profile or its bookmarks.
+    func reconcileProfiles(_ discovered: [DiscoveredProfile]) {
+        guard let context = modelContext,
+              let existing = try? context.fetch(FetchDescriptor<BrowserConfig>()) else { return }
+        var matchedIds = Set<String>()
+
+        for profile in discovered {
+            let id = "\(profile.bundleId):\(profile.profileName)"
+            // Chromium/Firefox display names can change when Local State or
+            // account metadata is temporarily unreadable. Their file path is
+            // stable. Safari profiles share a plist, so match those by name.
+            let config = existing.first { config in
+                !matchedIds.contains(config.id) && config.bundleId == profile.bundleId &&
+                (profile.bundleId == "com.apple.Safari"
+                    ? config.id == id
+                    : config.bookmarkFilePath == profile.bookmarkFilePath)
+            } ?? existing.first { !matchedIds.contains($0.id) && $0.id == id }
+
+            if let config {
+                matchedIds.insert(config.id)
+                config.browserName = profile.browserName
+                config.profileName = profile.profileName
+                config.bookmarkFilePath = profile.bookmarkFilePath
+            } else {
+                let config = BrowserConfig(
+                    id: id,
+                    bundleId: profile.bundleId,
+                    browserName: profile.browserName,
+                    profileName: profile.profileName,
+                    bookmarkFilePath: profile.bookmarkFilePath,
+                    isEnabled: false
+                )
+                context.insert(config)
+                matchedIds.insert(id)
             }
         }
 
-        for p in discovered {
-            let id = "\(p.bundleId):\(p.profileName)"
-            if !existingIds.contains(id) {
-                let config = BrowserConfig(
-                    id: id,
-                    bundleId: p.bundleId,
-                    browserName: p.browserName,
-                    profileName: p.profileName,
-                    bookmarkFilePath: p.bookmarkFilePath,
-                    isEnabled: false // Default to off for safety
-                )
-                context.insert(config)
-            }
+        unavailableProfileIds = Set(existing.map { $0.id }).subtracting(matchedIds)
+        for config in existing where unavailableProfileIds.contains(config.id) {
+            WriteQueue.shared.removePendingWrites(for: config.bookmarkFilePath)
         }
         try? context.save()
     }

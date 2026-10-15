@@ -91,3 +91,6 @@
 "Back" = "上一步";
 "Next" = "下一步";
 "Get Started" = "开始使用";
+"If access is already enabled, remove BookmarkSync from the list, add the current app again, then quit and reopen it." = "如果开关已经打开，请从权限列表中移除 BookmarkSync，重新添加当前应用，然后退出并重新打开。";
+"Rescan Profiles" = "重新扫描浏览器配置";
+"Profile temporarily unavailable. Saved configuration and bookmarks are preserved." = "暂时无法访问此配置，已保留原有设置和书签。";

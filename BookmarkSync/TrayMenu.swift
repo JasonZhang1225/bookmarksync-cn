@@ -71,6 +71,15 @@ struct TrayMenu: View {
                 Spacer()
 
                 HStack(spacing: 4) {
+                    Button(action: {
+                        viewModel.rescanProfiles()
+                        viewModel.syncEngine?.triggerSync(changedPaths: [], forceImmediate: true)
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.plain)
+                    .help("Rescan Profiles")
+
                     if viewModel.profileSets.count > 1 {
                         ForEach(viewModel.profileSets) { pSet in
                             Button(action: {
@@ -129,6 +138,11 @@ struct TrayMenu: View {
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
                                 .lineLimit(nil)
+
+                            Text("If access is already enabled, remove BookmarkSync from the list, add the current app again, then quit and reopen it.")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
 
                             Button("Open System Settings") {
                                 if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
@@ -227,6 +241,11 @@ struct TrayMenu: View {
                                         .padding(.leading, 4)
                                     }
 
+                                    if viewModel.unavailableProfileIds.contains(config.id) {
+                                        Image(systemName: "exclamationmark.triangle")
+                                            .foregroundColor(.orange)
+                                            .help("Profile temporarily unavailable. Saved configuration and bookmarks are preserved.")
+                                    }
                                     Spacer()
                                 }
                             }
@@ -290,6 +309,7 @@ struct TrayMenu: View {
             viewModel.modelContext = modelContext
             viewModel.loadProfileSets()
             viewModel.rescanProfiles()
+            viewModel.syncEngine?.triggerSync(changedPaths: [], forceImmediate: true)
         }
     }
 
