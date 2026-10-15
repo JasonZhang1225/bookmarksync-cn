@@ -1,5 +1,22 @@
 import Foundation
 
+/// A bookmark file that was readable but not shaped the way the parser expects.
+///
+/// Parsers throw this instead of returning an empty list: an empty result is
+/// indistinguishable from "the user deleted every bookmark", which the engine
+/// would then propagate to every other browser and, through their cloud sync,
+/// to every device.
+enum BookmarkParseError: LocalizedError {
+    case unexpectedStructure(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .unexpectedStructure(let detail):
+            return "Unexpected bookmark file structure: \(detail)"
+        }
+    }
+}
+
 /// Reads and writes one browser profile's bookmark storage.
 ///
 /// Conformers must be safe to use off the main actor: `read` and `write` do file

@@ -62,6 +62,11 @@ struct TrayMenu: View {
 
             Divider()
 
+            // Deletions held back by DeletionGuard, waiting for the user.
+            ForEach(viewModel.deletionHolds.values.sorted { $0.configId < $1.configId }) { hold in
+                DeletionHoldBanner(viewModel: viewModel, hold: hold)
+            }
+
             // Connected Profiles Header
             HStack(alignment: .center) {
                 Text("Profiles")

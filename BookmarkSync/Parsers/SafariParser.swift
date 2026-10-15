@@ -13,13 +13,20 @@ final class SafariParser: BrowserParser {
         let data = try Data(contentsOf: filePath)
         guard let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
               let rootChildren = plist["Children"] as? [[String: Any]] else {
-            return []
+            throw BookmarkParseError.unexpectedStructure("Safari bookmarks have no top-level Children")
         }
         
         var result: [ParsedBookmark] = []
         var seenKeys: [String: Int] = [:]
         
         if profileName == "Default" {
+            let hasKnownRoot = rootChildren.contains { rootChild in
+                let title = rootChild["Title"] as? String
+                return title == "BookmarksBar" || title == "BookmarksMenu"
+            }
+            guard hasKnownRoot else {
+                throw BookmarkParseError.unexpectedStructure("Safari bookmarks have neither BookmarksBar nor BookmarksMenu")
+            }
             for rootChild in rootChildren {
                 let title = rootChild["Title"] as? String ?? ""
                 if title == "BookmarksBar" || title == "BookmarksMenu" {
@@ -33,12 +40,13 @@ final class SafariParser: BrowserParser {
                 }
             }
         } else {
-            if let profileNode = rootChildren.first(where: { ($0["Title"] as? String) == profileName }) {
-                if let children = profileNode["Children"] as? [[String: Any]] {
-                    for (i, child) in children.enumerated() {
-                        if (child["Title"] as? String) == "Deleted by BookmarkSync" { continue }
-                        result.append(contentsOf: parseNode(child, parentId: nil, prefix: "bookmark_bar", index: i, seenKeys: &seenKeys))
-                    }
+            guard let profileNode = rootChildren.first(where: { ($0["Title"] as? String) == profileName }) else {
+                throw BookmarkParseError.unexpectedStructure("Safari profile folder \"\(profileName)\" not found")
+            }
+            if let children = profileNode["Children"] as? [[String: Any]] {
+                for (i, child) in children.enumerated() {
+                    if (child["Title"] as? String) == "Deleted by BookmarkSync" { continue }
+                    result.append(contentsOf: parseNode(child, parentId: nil, prefix: "bookmark_bar", index: i, seenKeys: &seenKeys))
                 }
             }
         }

@@ -13,6 +13,29 @@ class AppViewModel: ObservableObject {
     @Published var unavailableProfileIds: Set<String> = []
     @Published var latestBrowserNodes: [String: [String: ParsedBookmark]] = [:]
 
+    /// Profiles whose deletions `DeletionGuard` is holding, by config id.
+    @Published var deletionHolds: [String: PendingDeletionHold] = [:]
+    /// Deletions the user confirmed, by config id; consumed once applied.
+    var approvedDeletions: [String: Set<String>] = [:]
+    /// Profiles whose held deletion the user rejected. The next pass keeps the
+    /// hub as it is and adopts the profile's current file as observed, so the
+    /// export writes the missing bookmarks back.
+    var rejectedDeletionHolds: Set<String> = []
+
+    func approveDeletionHold(configId: String) {
+        guard let hold = deletionHolds.removeValue(forKey: configId) else { return }
+        approvedDeletions[configId] = hold.deletedIds
+        rejectedDeletionHolds.remove(configId)
+        syncEngine?.triggerSync(changedPaths: [], forceImmediate: true)
+    }
+
+    func rejectDeletionHold(configId: String) {
+        guard deletionHolds.removeValue(forKey: configId) != nil else { return }
+        approvedDeletions[configId] = nil
+        rejectedDeletionHolds.insert(configId)
+        syncEngine?.triggerSync(changedPaths: [], forceImmediate: true)
+    }
+
     /// Bumped whenever the sync engine commits bookmark changes.
     ///
     /// `@Model` instances compare by identity, so an in-place edit to a node's

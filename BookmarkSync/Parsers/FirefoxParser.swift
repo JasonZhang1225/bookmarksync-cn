@@ -19,15 +19,18 @@ final class FirefoxParser: BrowserParser {
         let originalWalPath = URL(fileURLWithPath: filePath.path + "-wal")
         let originalShmPath = URL(fileURLWithPath: filePath.path + "-shm")
         
-        try? FileManager.default.copyItem(at: originalDbPath, to: tempDbPath)
-        try? FileManager.default.copyItem(at: originalWalPath, to: tempWalPath)
-        try? FileManager.default.copyItem(at: originalShmPath, to: tempShmPath)
-        
         defer {
             try? FileManager.default.removeItem(at: tempDbPath)
             try? FileManager.default.removeItem(at: tempWalPath)
             try? FileManager.default.removeItem(at: tempShmPath)
         }
+
+        // The database itself must be copied; a failure here has to surface as
+        // a read error, never as an empty bookmark list. The WAL and SHM files
+        // legitimately may not exist.
+        try FileManager.default.copyItem(at: originalDbPath, to: tempDbPath)
+        try? FileManager.default.copyItem(at: originalWalPath, to: tempWalPath)
+        try? FileManager.default.copyItem(at: originalShmPath, to: tempShmPath)
         
         let db = try Connection(tempDbPath.path, readonly: true)
         
@@ -74,6 +77,12 @@ final class FirefoxParser: BrowserParser {
             
             idToTitle[id] = title
             idToParent[id] = parent
+        }
+
+        // Without the toolbar (3) and unfiled (5) roots this is not a profile we
+        // understand, and reading it as "no bookmarks" would delete everything.
+        guard idToTitle[3] != nil, idToTitle[5] != nil else {
+            throw BookmarkParseError.unexpectedStructure("Firefox places.sqlite is missing the toolbar or unfiled root")
         }
         
         var idToPath: [Int64: String] = [:]
