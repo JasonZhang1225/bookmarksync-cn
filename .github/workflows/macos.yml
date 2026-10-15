@@ -9,11 +9,13 @@ permissions:
 
 jobs:
   test:
-    runs-on: macos-15
+    runs-on: xcode-27
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
       - name: Check localization resources
         run: python3 scripts/check_localizations.py
       - name: Install XcodeGen
@@ -31,6 +33,16 @@ jobs:
           CODE_SIGNING_ALLOWED=NO
           CODE_SIGNING_REQUIRED=NO
           DEVELOPMENT_TEAM=
+      - name: Package app
+        run: |
+          APP_PATH=DerivedData/Build/Products/Debug/BookmarkSync.app
+          codesign --force --deep --sign - "$APP_PATH"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" BookmarkSync-macOS.zip
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: BookmarkSync-macOS
+          path: BookmarkSync-macOS.zip
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
