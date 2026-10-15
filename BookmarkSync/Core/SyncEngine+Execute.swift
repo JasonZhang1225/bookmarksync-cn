@@ -115,6 +115,11 @@ extension SyncEngine {
         }
 
         do {
+            // Stored ids must match the parsers' current scheme before anything
+            // is compared; a failure aborts this pass rather than syncing with
+            // half-migrated ids.
+            try BookmarkIdMigration.migrateIfNeeded(context: modelContext, viewModel: viewModel)
+
             let allConfigs = try modelContext.fetch(FetchDescriptor<BrowserConfig>())
             let enabledConfigs = allConfigs.filter { $0.isEnabled && !viewModel.unavailableProfileIds.contains($0.id) && $0.profileSetId != nil && !$0.profileSetId!.isEmpty }
 
