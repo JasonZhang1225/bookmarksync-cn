@@ -22,3 +22,10 @@
 - 原因/决策：参照 BJTUselfService-KMP-Refreshed 的协作体系；问题清单合并了 Claude Code 与 Codex 两份审阅。
 - 验证：仅文档；合入前已在分支上合并 PR #1 后的 `main`。
 - 未验证：计划中的问题均来自静态阅读。
+
+## 2026-10-15 读取异常与大批量删除保护（PR #3，`fix/s1-s2-deletion-safety`，计划 S1、S2）
+
+- 改动：新增 `BookmarkParseError`，Safari / Firefox 文件结构异常时抛错，不再返回空列表；新增 `DeletionGuard`，读到空结果而上次非空、删除 ≥10 个且 ≥20%、删除 ≥3 个且 ≥50% 时冻结该浏览器配置（不导入、不写入、不更新观察基线），每轮重新检查；菜单栏 `DeletionHoldBanner` 提供“确认删除 / 恢复书签”。
+- 原因/决策：只冻结出问题的那一个配置，同组其他浏览器照常同步（中枢里书签还在，其他浏览器不受影响）。
+- 验证：macOS CI（Xcode 27）79 个测试全部通过，其中新增 16 个（`DeletionGuardTests` 5、`ParserStructureTests` 7、`DeletionHoldIntegrationTests` 4）。
+- 实机：用户试用 CI 包时触发了暂停提示，但提示只显示数量，并暴露出备份恢复错位的问题（B1），转入批次 1b。

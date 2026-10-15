@@ -4,6 +4,7 @@ import SwiftUI
 struct DeletionHoldBanner: View {
     @ObservedObject var viewModel: AppViewModel
     let hold: PendingDeletionHold
+    @State private var showsDetails = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -18,6 +19,23 @@ struct DeletionHoldBanner: View {
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                showsDetails.toggle()
+            } label: {
+                Label {
+                    Text(verbatim: L10n.text(showsDetails ? "Hide Details" : "Show Details"))
+                } icon: {
+                    Image(systemName: showsDetails ? "chevron.down" : "chevron.right")
+                }
+                .font(.system(size: 10))
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.accentColor)
+
+            if showsDetails {
+                BookmarkDiffList(diff: hold.diff, maxHeight: 200)
+            }
 
             HStack(spacing: 6) {
                 Button("Restore Bookmarks") {

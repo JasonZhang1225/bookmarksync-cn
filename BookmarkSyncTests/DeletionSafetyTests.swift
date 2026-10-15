@@ -275,6 +275,9 @@ final class DeletionHoldIntegrationTests: XCTestCase {
         XCTAssertEqual(hold.reason, .massDeletion)
         XCTAssertEqual(hold.deletedIds.count, 15)
         XCTAssertEqual(hold.previousCount, 20)
+        XCTAssertEqual(hold.diff.removed.count, 15, "The hold lists every bookmark it would delete")
+        XCTAssertEqual(Set(hold.diff.removed.map(\.title)), Set((5..<20).map { "Bookmark \($0)" }))
+        XCTAssertTrue(hold.diff.added.isEmpty)
         XCTAssertEqual(try hubCount(h), 20, "A held deletion must not reach the hub")
 
         // Holding is stable across passes.
