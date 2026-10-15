@@ -131,6 +131,13 @@ extension SyncEngine {
                 return
             }
 
+            // A hold only means something while its profile is still syncing.
+            let enabledIds = Set(enabledConfigs.map { $0.id })
+            let liveHolds = viewModel.deletionHolds.filter { enabledIds.contains($0.key) }
+            if liveHolds.count != viewModel.deletionHolds.count {
+                viewModel.deletionHolds = liveHolds
+            }
+
             let readsByConfig = Dictionary(reads.map { ($0.configId, $0) }, uniquingKeysWith: { first, _ in first })
             let configsBySet = Dictionary(grouping: enabledConfigs, by: { $0.profileSetId! })
             let allStateNodes = try modelContext.fetch(FetchDescriptor<BookmarkNode>())
@@ -205,6 +212,15 @@ extension SyncEngine {
                         SyncLog.event("Initial sync for \(config.browserName) (\(config.profileName)): importing all local bookmarks")
                         isTriggered = true
                     }
+
+                    // 4. A held deletion, or the user's answer to one, must be
+                    // re-evaluated every pass, whatever the file's mtime says.
+                    if !isTriggered,
+                       viewModel.deletionHolds[config.id] != nil ||
+                       viewModel.approvedDeletions[config.id] != nil ||
+                       viewModel.rejectedDeletionHolds.contains(config.id) {
+                        isTriggered = true
+                    }
                     
                     if isTriggered {
                         triggeringConfigs.append(config)
@@ -228,14 +244,61 @@ extension SyncEngine {
                 /// quadratic.
                 var titlesToCancel = Set<String>()
                 var hasChanges = false
+                /// Profiles frozen this pass by `DeletionGuard`: nothing is
+                /// imported from them, written to them, or recorded as observed,
+                /// so the next pass compares against the same baseline again.
+                var heldConfigIds = Set<String>()
 
                 for config in triggeringConfigs {
                     guard let currentNodes = configCurrentNodes[config.id] else { continue }
                     let latestDict = previousLatestNodes[config.id] ?? [:]
                     let currentDict = Dictionary(currentNodes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
+                    // 0. Guard against a misread file or an unusually large
+                    // deletion spreading to every other browser.
+                    var applyDeletions = config.lastSyncTime != nil
+                    if applyDeletions {
+                        if viewModel.rejectedDeletionHolds.remove(config.id) != nil {
+                            // The user chose to keep these bookmarks: leave the hub
+                            // intact and let the export write them back.
+                            applyDeletions = false
+                            viewModel.approvedDeletions[config.id] = nil
+                            SyncLog.event("[Guard] \(config.browserName) (\(config.profileName)): deletion rejected by user, restoring from hub")
+                        } else {
+                            let deletedIds = Set(latestDict.keys).subtracting(currentDict.keys)
+                            let verdict = DeletionGuard.evaluate(
+                                previousCount: latestDict.count,
+                                currentCount: currentDict.count,
+                                deletedIds: deletedIds,
+                                approvedIds: viewModel.approvedDeletions[config.id] ?? []
+                            )
+                            switch verdict {
+                            case .hold(let reason):
+                                heldConfigIds.insert(config.id)
+                                let hold = PendingDeletionHold(
+                                    configId: config.id,
+                                    browserName: config.browserName,
+                                    profileName: config.profileName,
+                                    reason: reason,
+                                    deletedIds: deletedIds,
+                                    previousCount: latestDict.count
+                                )
+                                if viewModel.deletionHolds[config.id] != hold {
+                                    viewModel.deletionHolds[config.id] = hold
+                                }
+                                SyncLog.event("[Guard] \(config.browserName) (\(config.profileName)): holding \(deletedIds.count) of \(latestDict.count) deletion(s) (\(reason)) until the user confirms")
+                                continue
+                            case .allow:
+                                if viewModel.deletionHolds[config.id] != nil {
+                                    viewModel.deletionHolds[config.id] = nil
+                                }
+                                viewModel.approvedDeletions[config.id] = nil
+                            }
+                        }
+                    }
+
                     // 1. Handle Deletions
-                    if config.lastSyncTime != nil {
+                    if applyDeletions {
                         for (id, latestNode) in latestDict {
                             guard currentDict[id] == nil, let stateNode = stateById[id] else { continue }
 
@@ -391,6 +454,9 @@ extension SyncEngine {
 
                 for config in activeConfigs {
                     guard let currentNodes = configCurrentNodes[config.id] else { continue }
+                    // Writing the hub back would silently undo a deletion the
+                    // user has not decided on yet.
+                    if heldConfigIds.contains(config.id) { continue }
                     let currentDict = Dictionary(currentNodes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
                     // One activity row per change, collected here and published in

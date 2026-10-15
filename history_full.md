@@ -15,3 +15,10 @@
 - 附带的同步行为改动（commit `1cdd347`）：浏览器配置扫描不到时（例如完全磁盘访问权限失效），不再删除该配置及其中枢书签，而是标记为“暂时不可用”（`AppViewModel.unavailableProfileIds`），同步时跳过；菜单栏新增“重新扫描浏览器配置”按钮和不可用提示；新增 `ProfileDiscoveryTests`。这与计划 S1“不确定就不写”的方向一致。
 - 验证：GitHub Actions（Xcode 27）编译通过，XCTest 全部通过；`python3 scripts/check_localizations.py` 通过（合入后在 Linux 上复跑：95 组文案、69 个界面字面量）。
 - 未验证：真实 macOS 上的中文界面（截断、换行）、“暂时不可用”状态的实机表现、与浏览器云同步的联调。
+
+## 2026-10-15 AI 协作规范、工作记忆与第一阶段计划（PR #2，`docs/ai-workflow-and-plan`）
+
+- 改动：`AGENTS.md` 末尾新增第 3 节（中文）：文档分工、仓库事实、数据安全红线、工作方式、测试与交付；新增 `memory.md`、`history_full.md`、`docs/plan/2026-10-phase1-safety.md`（16 个问题条目、7 个批次）；`.gitignore` 忽略 `.artifacts/`。
+- 原因/决策：参照 BJTUselfService-KMP-Refreshed 的协作体系；问题清单合并了 Claude Code 与 Codex 两份审阅。
+- 验证：仅文档；合入前已在分支上合并 PR #1 后的 `main`。
+- 未验证：计划中的问题均来自静态阅读。

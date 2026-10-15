@@ -94,3 +94,10 @@
 "If access is already enabled, remove BookmarkSync from the list, add the current app again, then quit and reopen it." = "If access is already enabled, remove BookmarkSync from the list, add the current app again, then quit and reopen it.";
 "Rescan Profiles" = "Rescan Profiles";
 "Profile temporarily unavailable. Saved configuration and bookmarks are preserved." = "Profile temporarily unavailable. Saved configuration and bookmarks are preserved.";
+"Deletion Paused" = "Deletion Paused";
+"Restore Bookmarks" = "Restore Bookmarks";
+"Apply Deletion" = "Apply Deletion";
+"Keep these bookmarks and write them back to this browser" = "Keep these bookmarks and write them back to this browser";
+"Delete these bookmarks in every synced browser" = "Delete these bookmarks in every synced browser";
+"%@ returned no bookmarks, but had %ld last time. This may be a read error. Nothing has been deleted in other browsers yet." = "%@ returned no bookmarks, but had %ld last time. This may be a read error. Nothing has been deleted in other browsers yet.";
+"%@ lost %ld of its %ld bookmarks at once. This may be a read error or a deliberate deletion. Nothing has been deleted in other browsers yet." = "%@ lost %ld of its %ld bookmarks at once. This may be a read error or a deliberate deletion. Nothing has been deleted in other browsers yet.";

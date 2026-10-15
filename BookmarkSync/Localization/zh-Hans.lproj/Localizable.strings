@@ -94,3 +94,10 @@
 "If access is already enabled, remove BookmarkSync from the list, add the current app again, then quit and reopen it." = "如果开关已经打开，请从权限列表中移除 BookmarkSync，重新添加当前应用，然后退出并重新打开。";
 "Rescan Profiles" = "重新扫描浏览器配置";
 "Profile temporarily unavailable. Saved configuration and bookmarks are preserved." = "暂时无法访问此配置，已保留原有设置和书签。";
+"Deletion Paused" = "已暂停删除";
+"Restore Bookmarks" = "恢复书签";
+"Apply Deletion" = "确认删除";
+"Keep these bookmarks and write them back to this browser" = "保留这些书签，并写回到这个浏览器";
+"Delete these bookmarks in every synced browser" = "在所有同步的浏览器中删除这些书签";
+"%@ returned no bookmarks, but had %ld last time. This may be a read error. Nothing has been deleted in other browsers yet." = "%@ 这次没有读到任何书签，而上次有 %ld 个。可能是读取出错。其他浏览器中的书签还没有被删除。";
+"%@ lost %ld of its %ld bookmarks at once. This may be a read error or a deliberate deletion. Nothing has been deleted in other browsers yet." = "%@ 一次少了 %ld 个书签（原有 %ld 个）。可能是读取出错，也可能是你主动删除。其他浏览器中的书签还没有被删除。";
