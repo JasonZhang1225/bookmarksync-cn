@@ -34,7 +34,8 @@ final class LocalizationTests: XCTestCase {
             for count in [0, 1, 2, 1000] {
                 let format = L10n.text("bookmarks_found", bundle: bundle)
                 let result = String.localizedStringWithFormat(format, count)
-                let expected = language == "zh-Hans" ? "找到 \(count) 项" : "\(count) found"
+                let formattedCount = count.formatted(.number)
+                let expected = language == "zh-Hans" ? "找到 \(formattedCount) 项" : "\(formattedCount) found"
                 XCTAssertEqual(result, expected)
             }
         }
