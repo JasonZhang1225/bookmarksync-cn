@@ -1,15 +1,14 @@
 # BookmarkSync 中文分支实时工作记忆
 
 > 最后更新：2026-10-15。
-> 当前分支：`main` = 上游 `Xazzzi/bookmarksync@13485d1`（未改动）。
-> 未合入 PR：#1 `feat/simplified-chinese-i18n`（中英文本地化 + macOS CI，CI 通过，作者仍在验证）；`docs/ai-workflow-and-plan`（本工程化文档 PR）。
+> 当前分支：`main` = 上游 `13485d1` + PR #1（中英文本地化 + macOS CI，2026-10-15 合入）。
+> 未合入 PR：#2 `docs/ai-workflow-and-plan`（本工程化文档 PR）。
 > 阶段计划：`docs/plan/2026-10-phase1-safety.md`（第一阶段：防丢数据与匹配正确性）。
 > 已完成工作的细节见 `history_full.md` 末尾日志。
 
 ## 进行中
 
-- PR #1 中文本地化：由 Codex 提交，CI（Xcode 27，60 项 XCTest）通过；尚未在真实 macOS 上看过界面。作者确认改好后由用户合并。
-- 工程化文档 PR：`AGENTS.md` 第 3 节、`memory.md`、`history_full.md`、`docs/plan/`。
+- PR #2 工程化文档：`AGENTS.md` 第 3 节、`memory.md`、`history_full.md`、`docs/plan/`。
 
 ## 当前痛点
 
@@ -18,6 +17,7 @@
 - Firefox 每次写入都整体删除重建并换新 GUID（S3），与 Firefox Sync 一起用的风险未验证。
 - 写入要等目标浏览器完全退出（⌘Q）才执行；Chrome/Edge 常驻时改动会一直排队（M6）。
 - 云端会话无法编译 Swift，所有代码改动只能靠 PR CI 验证。
+- PR #1 的中文界面和“配置暂时不可用”提示尚未在真实 macOS 上看过。
 
 ## 已知限制（非缺陷，排查时先看这里）
 
@@ -27,5 +27,5 @@
 
 ## 接下来
 
-1. 合入 PR #1 与工程化文档 PR。
+1. 合入 PR #2（工程化文档）。
 2. 按 `docs/plan/2026-10-phase1-safety.md` 批次 1 开工：S1 空读取保护 → S2 大批量删除保护 → M3 空文件夹被删。
