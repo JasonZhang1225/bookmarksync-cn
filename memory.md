@@ -2,7 +2,7 @@
 
 > 最后更新：2026-10-15。
 > 当前分支：`docs/after-batch-3`（仅文档）；`main` = 上游 `13485d1` + PR #1–#6（本地化与 CI、工程化文档、S1/S2 删除保护、B1–B3 备份与差异、E2 固定签名、M3/U1）。
-> 未合入（按顺序叠放，需按顺序合并）：PR #8 `fix/m1-url-matching`（批次 4）→ `fix/m2-root-mapping`（批次 5）。批次 0–3 已全部合入。
+> 未合入（按顺序叠放，需按顺序合并）：PR #8 `fix/m1-url-matching`（批次 4）→ PR #9 `fix/m2-root-mapping`（批次 5）→ `fix/s3-firefox-incremental-write`（批次 6）。批次 0–3 已全部合入。
 > 阶段计划：`docs/plan/2026-10-phase1-safety.md`（第一阶段：防丢数据与匹配正确性；2026-10-15 已按“攒批实机验证”重排）。
 > 已完成工作的细节见 `history_full.md` 末尾日志。
 
@@ -10,6 +10,7 @@
 
 - 批次 4（`fix/m1-url-matching`）：`normalizeURL` 保留路径 / 参数大小写和非默认端口；`BookmarkIdMigration` 在第一次同步前重算中枢与观察基线里的书签 ID；README 两处修正。新增 `URLMatchingTests`。靠 PR CI 验证。
 - 批次 5（`fix/m2-root-mapping`）：`BookmarkRoots` 定义各浏览器支持的根目录，导出比较跳过不支持的根目录（Chrome 移动设备书签不再让 Safari / Firefox 每轮重复写入）；详情页显示“此浏览器不同步”。新增 `RootMappingTests`。
+- 批次 6（`fix/s3-firefox-incremental-write`）：Firefox 改为增量写入（`FirefoxIncrementalWriter`），保留 GUID 和分隔线、留删除记录、维护同步计数，写入未变化的书签树不产生任何改动；书签菜单里的书签不再被复制（S4）。新增 `FirefoxWriteTests`。
 - 实机验证第 1 轮：用户 2026-10-15 已在 Mac 上验证备份对比与恢复（通过）；跨版本授权保留、暂停删除与查看详情、空文件夹保留、写入等待提示尚未测，用户决定先推进新功能，留到下一轮一起测。
 
 ## 当前痛点
@@ -17,7 +18,7 @@
 - 2026-10-15 用户安装 PR #8 的 CI 包时，仍被要求重新授予完全磁盘访问权限。**待确认**：如果这是第一次装固定签名版（之前装的是 ad-hoc 版），这是预期的最后一次授权；如果之前已装过固定签名版并授过权，说明 E2 没有生效，需要排查（例如应用运行位置、隔离属性、TCC 是否认自签名证书）。用户要求尽量减少实机测试次数。
 
 - E2 已合入：从 ad-hoc 版换到固定签名版需最后授权一次；之后两版之间授权是否保留，要在实机验证第 1 轮确认。仍按“攒批实机验证”进行。
-- Firefox 每次写入都整体删除重建并换新 GUID（S3），与 Firefox Sync 一起用的风险未验证。
+- Firefox 增量写入（S3）尚未和真实的 Firefox Sync 一起实测。
 - 云端会话（Claude Code）无法编译 Swift，代码改动靠 PR CI 验证；Codex 本机会话可运行 Xcode 和 macOS 签名校验。
 
 ## 已知限制（非缺陷，排查时先看这里）
