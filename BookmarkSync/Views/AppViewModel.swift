@@ -153,11 +153,40 @@ class AppViewModel: ObservableObject {
             }
         }
 
-        unavailableProfileIds = Set(existing.map { $0.id }).subtracting(matchedIds)
+        // A profile that is gone and was never synced has nothing to preserve:
+        // drop it instead of listing it as unavailable forever (for example a
+        // Safari top-level folder that older versions listed as a profile).
+        var unavailable = Set(existing.map { $0.id }).subtracting(matchedIds)
+        for config in existing where unavailable.contains(config.id) && Self.isUnused(config) {
+            unavailable.remove(config.id)
+            context.delete(config)
+        }
+        unavailableProfileIds = unavailable
         for config in existing where unavailableProfileIds.contains(config.id) {
             WriteQueue.shared.removePendingWrites(for: config.bookmarkFilePath)
         }
         try? context.save()
+    }
+
+    static func isUnused(_ config: BrowserConfig) -> Bool {
+        !config.isEnabled && (config.profileSetId ?? "").isEmpty && config.observedStateData == nil
+    }
+
+    /// Forgets a profile that can no longer be found. Only the app's record is
+    /// removed; no bookmark file is touched.
+    func removeUnavailableProfile(_ config: BrowserConfig) {
+        guard let context = modelContext, unavailableProfileIds.contains(config.id) else { return }
+        let setId = config.profileSetId
+        WriteQueue.shared.removePendingWrites(for: config.bookmarkFilePath)
+        removeDiffs(for: config.bundleId, profileName: config.profileName)
+        latestBrowserNodes[config.id] = nil
+        unavailableProfileIds.remove(config.id)
+        context.delete(config)
+        try? context.save()
+        if let setId, !setId.isEmpty {
+            cleanOrphanedNodes(for: setId)
+        }
+        syncEngine?.triggerSync(changedPaths: [], forceImmediate: true)
     }
 
     enum NodeSyncStatus: String {

@@ -123,3 +123,8 @@
 "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough." = "%@ 正在运行。完全退出（⌘Q）后才会写入 %ld 项待写入的改动；只关闭窗口不算退出。";
 "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again." = "无法读取此配置的书签文件。恢复读取之前会跳过它，不会删除任何书签。";
 "Not Synced Here" = "此浏览器不同步";
+"Remove this profile from the list. No bookmark file is changed." = "从列表中移除此配置，不会改动任何书签文件。";
+"Remove %@ (%@)?" = "移除 %@（%@）？";
+"This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile." = "已找不到这个配置。移除只会删除 BookmarkSync 里的记录，不会改动任何书签文件。之后如果它再次出现，会作为一个未启用的新配置列出。";
+"Remove" = "移除";
+"Cancel" = "取消";
