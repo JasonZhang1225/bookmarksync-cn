@@ -1,25 +1,21 @@
 # BookmarkSync 中文分支实时工作记忆
 
-> 最后更新：2026-10-15。
-> 当前分支：`docs/after-batch-3`（仅文档）；`main` = 上游 `13485d1` + PR #1–#6（本地化与 CI、工程化文档、S1/S2 删除保护、B1–B3 备份与差异、E2 固定签名、M3/U1）。
-> 未合入（按顺序叠放，需按顺序合并）：PR #8 `fix/m1-url-matching`（批次 4）→ PR #9 `fix/m2-root-mapping`（批次 5）→ PR #10 `fix/s3-firefox-incremental-write`（批次 6）→ `docs/phase1-designs`（批次 7，只改文档）。批次 0–3 已全部合入。
-> 阶段计划：`docs/plan/2026-10-phase1-safety.md`（第一阶段：防丢数据与匹配正确性；2026-10-15 已按“攒批实机验证”重排）。
+> 最后更新：2026-10-16。
+> 当前分支：`docs/after-phase1-merge`（仅文档）；`main` = 上游 `13485d1` + PR #1–#11：第一阶段批次 0–7 已全部合入。
+> 阶段计划：`docs/plan/2026-10-phase1-safety.md`（第一阶段：防丢数据与匹配正确性）。
 > 已完成工作的细节见 `history_full.md` 末尾日志。
 
 ## 进行中
 
-- 批次 4（`fix/m1-url-matching`）：`normalizeURL` 保留路径 / 参数大小写和非默认端口；`BookmarkIdMigration` 在第一次同步前重算中枢与观察基线里的书签 ID；README 两处修正。新增 `URLMatchingTests`。靠 PR CI 验证。
-- 批次 5（`fix/m2-root-mapping`）：`BookmarkRoots` 定义各浏览器支持的根目录，导出比较跳过不支持的根目录（Chrome 移动设备书签不再让 Safari / Firefox 每轮重复写入）；详情页显示“此浏览器不同步”。新增 `RootMappingTests`。
-- 批次 6（`fix/s3-firefox-incremental-write`）：Firefox 改为增量写入（`FirefoxIncrementalWriter`），保留 GUID 和分隔线、留删除记录、维护同步计数，写入未变化的书签树不产生任何改动；书签菜单里的书签不再被复制（S4）。新增 `FirefoxWriteTests`。
-- 批次 7（`docs/phase1-designs`）：`docs/design/` 下新增 D1 身份模型、D2 浏览器扩展设计稿，以及 U2/U3/M4 评估；计划中合并出一份“最终实机验证清单”。
-- 实机验证第 1 轮：用户 2026-10-15 已在 Mac 上验证备份对比与恢复（通过）；跨版本授权保留、暂停删除与查看详情、空文件夹保留、写入等待提示尚未测，用户决定先推进新功能，留到下一轮一起测。
+- 最终实机验证已基本完成（结果见 `history_full.md` 2026-10-16 条目）。待做的小修复，等用户确认后开 PR：
+  - Safari 根目录文件夹被当成配置：文件夹消失且从未启用的配置自动移除；启用过的提供“移除”按钮（只删应用记录，不碰书签文件）。
+  - 备份管理加“立即备份”（手动备份单独标记、不参与自动清理），并写清自动备份触发时机。
+- 待用户提供信息：Chrome 其他配置读不到（怀疑新版 Chrome 的 `AccountBookmarks`），已请用户贴出 `Local State` 配置名和各配置目录下的书签文件名。
+- 待用户确认：⌘Q 退出 Chrome 后，Safari 里删除的“测试文件夹”是否移进了 `Deleted by BookmarkSync`。
 
 ## 当前痛点
 
-- 2026-10-15 用户安装 PR #8 的 CI 包时，仍被要求重新授予完全磁盘访问权限。**待确认**：如果这是第一次装固定签名版（之前装的是 ad-hoc 版），这是预期的最后一次授权；如果之前已装过固定签名版并授过权，说明 E2 没有生效，需要排查（例如应用运行位置、隔离属性、TCC 是否认自签名证书）。用户要求尽量减少实机测试次数。
-
-- E2 已合入：从 ad-hoc 版换到固定签名版需最后授权一次；之后两版之间授权是否保留，要在实机验证第 1 轮确认。仍按“攒批实机验证”进行。
-- Firefox 增量写入（S3）尚未和真实的 Firefox Sync 一起实测。
+- 写入相关的改动（M1 迁移、M2、S3/S4、M3、U1）只有 CI 单元测试，尚未在真实浏览器和云同步上验证。
 - 云端会话（Claude Code）无法编译 Swift，代码改动靠 PR CI 验证；Codex 本机会话可运行 Xcode 和 macOS 签名校验。
 
 ## 已知限制（非缺陷，排查时先看这里）
@@ -32,6 +28,6 @@
 
 ## 接下来
 
-1. 用户按顺序合并 PR #8 → #9 → #10 → #11。
-2. 用户按计划中的“最终实机验证清单”做一轮实机测试，把结果记入 `history_full.md`，失败项转成新的计划条目。
-3. 需要用户决定：U2 删除归档的默认方式（定期清理 / 直接删除），见 `docs/design/u2-u3-m4-evaluation.md`；D1 / D2 是否进入第二阶段。
+1. 用户确认后实施上面两项小修复。
+2. 根据用户提供的信息排查 Chrome 多配置读取。
+3. 已决定：U2 维持现状；D1、D2 搁置（设计稿保留在 `docs/design/`）。批量删除保护（S1/S2/B3）和 Firefox 尚未实测。
