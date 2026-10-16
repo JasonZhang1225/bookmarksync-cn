@@ -7,6 +7,7 @@ struct BookmarkTreeDetailView: View {
     let configs: [BrowserConfig]
     @ObservedObject var viewModel: AppViewModel
     let revealInTree: (String) -> Void
+    let onDelete: (BookmarkItem) -> Void
 
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -38,6 +39,17 @@ struct BookmarkTreeDetailView: View {
                             Text(verbatim: L10n.text(item.type == .folder ? "Folder" : "Bookmark"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
+
+                        if BookmarksTreeView.canDelete(item) {
+                            Button(role: .destructive) {
+                                onDelete(item)
+                            } label: {
+                                Label("Delete…", systemImage: "trash")
+                            }
+                            .help("Delete from every synced browser")
                         }
                     }
                     .padding(.top, 10)

@@ -135,3 +135,10 @@
 "Backed up %@ - %@." = "Backed up %@ - %@.";
 "There is no bookmark file to back up." = "There is no bookmark file to back up.";
 "Backup failed: %@" = "Backup failed: %@";
+"Delete…" = "Delete…";
+"Delete" = "Delete";
+"Delete \"%@\"?" = "Delete \"%@\"?";
+"The folder and the %ld item(s) inside it will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed items are kept in the \"Deleted by BookmarkSync\" folder." = "The folder and the %ld item(s) inside it will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed items are kept in the \"Deleted by BookmarkSync\" folder.";
+"The bookmark will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed bookmark is kept in the \"Deleted by BookmarkSync\" folder." = "The bookmark will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed bookmark is kept in the \"Deleted by BookmarkSync\" folder.";
+"Delete from every synced browser" = "Delete from every synced browser";
+"Version (build, commit)" = "Version (build, commit)";

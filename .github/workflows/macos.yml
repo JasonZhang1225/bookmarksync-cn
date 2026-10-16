@@ -33,6 +33,18 @@ jobs:
           CODE_SIGNING_ALLOWED=NO
           CODE_SIGNING_REQUIRED=NO
           DEVELOPMENT_TEAM=
+      # Every packaged build gets its own build number (the run number) and
+      # commit, shown in the menu bar. Done before signing, which covers it.
+      - name: Stamp build number
+        if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          PLIST=DerivedData/Build/Products/Debug/BookmarkSync.app/Contents/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${GITHUB_RUN_NUMBER}" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Delete :BookmarkSyncCommit" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :BookmarkSyncCommit string ${HEAD_SHA:0:7}" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" -c "Print :CFBundleVersion" -c "Print :BookmarkSyncCommit" "$PLIST"
       # Fork PRs run tests without receiving the private signing identity.
       - name: Sign app with persistent certificate
         if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
