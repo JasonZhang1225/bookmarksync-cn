@@ -142,3 +142,11 @@
 "The bookmark will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed bookmark is kept in the \"Deleted by BookmarkSync\" folder." = "这条书签会从所有已同步的浏览器中移除。写入每个浏览器之前都会先备份书签文件，移除的书签会保留在“Deleted by BookmarkSync”文件夹里。";
 "Delete from every synced browser" = "从所有已同步的浏览器中删除";
 "Version (build, commit)" = "版本（构建号，提交）";
+"Put this item from the backup back into every synced browser" = "把备份里的这一项恢复到所有已同步的浏览器";
+"Delete this backup file" = "删除这个备份文件";
+"Turn on syncing for this profile to restore single items." = "启用此配置的同步后，才能单条恢复。";
+"Restored \"%@\". The next sync writes it to every synced browser; a running browser receives it after you quit it (⌘Q)." = "已恢复“%@”。下次同步会写入所有已同步的浏览器；正在运行的浏览器要等你完全退出（⌘Q）后才会写入。";
+"\"%@\" is already in your bookmarks." = "“%@”已经在书签里了。";
+"Delete the backup from %@?" = "删除 %@ 的备份？";
+"The backup file is deleted permanently. Your current bookmarks are not affected." = "备份文件会被永久删除，不影响当前的书签。";
+"Could not delete the backup: %@" = "无法删除备份：%@";

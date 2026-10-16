@@ -53,6 +53,17 @@ enum BackupStore {
         pattern: #"^(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})(?:-\d+)?$"#
     )
 
+    // MARK: Deleting
+
+    /// Removes one backup file. Refuses anything that is not a backup, so a
+    /// bad entry can never take the live bookmark file with it.
+    static func delete(_ backup: BackupEntry) throws {
+        guard backup.name.contains(marker) else {
+            throw CocoaError(.fileWriteNoPermission, userInfo: [NSFilePathErrorKey: backup.url.path])
+        }
+        try FileManager.default.removeItem(at: backup.url)
+    }
+
     // MARK: Creating
 
     /// Copies `fileURL` to a new timestamped backup beside it and prunes old

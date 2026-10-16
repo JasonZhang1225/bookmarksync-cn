@@ -142,3 +142,11 @@
 "The bookmark will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed bookmark is kept in the \"Deleted by BookmarkSync\" folder." = "The bookmark will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed bookmark is kept in the \"Deleted by BookmarkSync\" folder.";
 "Delete from every synced browser" = "Delete from every synced browser";
 "Version (build, commit)" = "Version (build, commit)";
+"Put this item from the backup back into every synced browser" = "Put this item from the backup back into every synced browser";
+"Delete this backup file" = "Delete this backup file";
+"Turn on syncing for this profile to restore single items." = "Turn on syncing for this profile to restore single items.";
+"Restored \"%@\". The next sync writes it to every synced browser; a running browser receives it after you quit it (⌘Q)." = "Restored \"%@\". The next sync writes it to every synced browser; a running browser receives it after you quit it (⌘Q).";
+"\"%@\" is already in your bookmarks." = "\"%@\" is already in your bookmarks.";
+"Delete the backup from %@?" = "Delete the backup from %@?";
+"The backup file is deleted permanently. Your current bookmarks are not affected." = "The backup file is deleted permanently. Your current bookmarks are not affected.";
+"Could not delete the backup: %@" = "Could not delete the backup: %@";

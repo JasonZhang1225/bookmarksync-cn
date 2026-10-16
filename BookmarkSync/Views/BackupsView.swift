@@ -19,6 +19,8 @@ struct BackupsView: View {
     @State private var backups: [BackupEntry] = []
     @State private var selectedBackup: BackupEntry?
     @State private var diffState: BackupDiffState = .idle
+    /// The compared backup's bookmarks by id, for restoring single items.
+    @State private var backupTree: [String: ParsedBookmark] = [:]
     @State private var alertMessage: String?
     @State private var showAlert = false
 
@@ -135,6 +137,15 @@ struct BackupsView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+
+            Button {
+                confirmDelete(item)
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+            .controlSize(.small)
+            .help("Delete this backup file")
         }
         .padding(.vertical, 4)
         .background(selectedBackup == item ? Color.accentColor.opacity(0.12) : Color.clear)
@@ -183,7 +194,17 @@ struct BackupsView: View {
                         .font(.caption)
                         .foregroundColor(.red)
                 case .ready(let diff):
-                    BookmarkDiffList(diff: diff, maxHeight: 240)
+                    BookmarkDiffList(
+                        diff: diff,
+                        maxHeight: 240,
+                        opensLinks: true,
+                        restoreAction: canRestoreItems ? { restoreItem($0) } : nil
+                    )
+                    if !canRestoreItems && !diff.isEmpty {
+                        Text("Turn on syncing for this profile to restore single items.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
 
                     HStack {
                         Spacer()
@@ -209,9 +230,43 @@ struct BackupsView: View {
         return formatter.string(from: date)
     }
 
+    /// Single items go back through the hub, so the profile must be synced.
+    private var canRestoreItems: Bool {
+        guard let config = selectedConfig else { return false }
+        return config.isEnabled && !(config.profileSetId ?? "").isEmpty
+    }
+
+    private func restoreItem(_ entry: BookmarkDiff.Entry) {
+        guard let config = selectedConfig else { return }
+        if viewModel.restoreFromBackup(id: entry.id, backup: backupTree, into: config) > 0 {
+            alertMessage = L10n.format("Restored \"%@\". The next sync writes it to every synced browser; a running browser receives it after you quit it (⌘Q).", entry.title)
+        } else {
+            alertMessage = L10n.format("\"%@\" is already in your bookmarks.", entry.title)
+        }
+        showAlert = true
+    }
+
+    private func confirmDelete(_ backup: BackupEntry) {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L10n.format("Delete the backup from %@?", formattedDate(backup.date))
+        alert.informativeText = L10n.text("The backup file is deleted permanently. Your current bookmarks are not affected.")
+        alert.addButton(withTitle: L10n.text("Delete"))
+        alert.addButton(withTitle: L10n.text("Cancel"))
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        do {
+            try BackupStore.delete(backup)
+        } catch {
+            alertMessage = L10n.format("Could not delete the backup: %@", error.localizedDescription)
+            showAlert = true
+        }
+        loadBackups()
+    }
+
     private func loadBackups() {
         selectedBackup = nil
         diffState = .idle
+        backupTree = [:]
         guard let config = selectedConfig else {
             backups = []
             return
@@ -245,18 +300,20 @@ struct BackupsView: View {
         let liveURL = URL(fileURLWithPath: config.bookmarkFilePath)
 
         Task {
-            let state = await Task.detached { () -> BackupDiffState in
+            let (state, tree) = await Task.detached { () -> (BackupDiffState, [String: ParsedBookmark]) in
                 do {
                     let current = try makeBookmarkParser(bundleId: bundleId, profileName: profileName, fileURL: liveURL).read()
                     let restored = try makeBookmarkParser(bundleId: bundleId, profileName: profileName, fileURL: backup.url).read()
-                    return .ready(BookmarkDiff(old: current, new: restored))
+                    let tree = Dictionary(restored.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+                    return (.ready(BookmarkDiff(old: current, new: restored)), tree)
                 } catch {
-                    return .failed(error.localizedDescription)
+                    return (.failed(error.localizedDescription), [:])
                 }
             }.value
             // Ignore a result for a backup the user has since moved away from.
             if selectedBackup == backup {
                 diffState = state
+                backupTree = tree
             }
         }
     }
