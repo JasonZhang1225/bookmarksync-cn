@@ -35,8 +35,8 @@ final class BackupStoreTests: XCTestCase {
         try BackupStore.createBackup(of: live, now: now)
         try BackupStore.createBackup(of: account, now: now)
 
-        XCTAssertEqual(BackupStore.listBackups(for: live).map { try contents($0.url) }, ["local"])
-        XCTAssertEqual(BackupStore.listBackups(for: account).map { try contents($0.url) }, ["account"])
+        XCTAssertEqual(try BackupStore.listBackups(for: live).map { try contents($0.url) }, ["local"])
+        XCTAssertEqual(try BackupStore.listBackups(for: account).map { try contents($0.url) }, ["account"])
     }
 
     func testBackupIsNamedByTimestamp() throws {
