@@ -120,7 +120,7 @@
 "Select a backup and click Compare to see what restoring it would change." = "Select a backup and click Compare to see what restoring it would change.";
 "Quit %@ (⌘Q) before restoring. While it is running it keeps its bookmarks in memory and would overwrite the restored file." = "Quit %@ (⌘Q) before restoring. While it is running it keeps its bookmarks in memory and would overwrite the restored file.";
 "Restored the backup from %@. Bookmarks it lacks will also be removed from your other browsers; a large removal is held in the menu bar for your confirmation first." = "Restored the backup from %@. Bookmarks it lacks will also be removed from your other browsers; a large removal is held in the menu bar for your confirmation first.";
-"%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough, and an open web app (PWA) of it also keeps it running." = "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough, and an open web app (PWA) of it also keeps it running.";
+"Quit %@ and its web apps (PWAs) completely (⌘Q) to write %ld pending change(s); closing its windows is not enough." = "Quit %@ and its web apps (PWAs) completely (⌘Q) to write %ld pending change(s); closing its windows is not enough.";
 "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again." = "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again.";
 "Not Synced Here" = "Not Synced Here";
 "Remove this profile from the list. No bookmark file is changed." = "Remove this profile from the list. No bookmark file is changed.";
@@ -128,7 +128,7 @@
 "This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile." = "This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile.";
 "Remove" = "Remove";
 "Cancel" = "Cancel";
-"%@ is running. Quit it completely (⌘Q) to write the pending changes; closing its windows is not enough, and an open web app (PWA) of it also keeps it running." = "%@ is running. Quit it completely (⌘Q) to write the pending changes; closing its windows is not enough, and an open web app (PWA) of it also keeps it running.";
+"Quit %@ and its web apps (PWAs) completely (⌘Q) to write the pending changes; closing its windows is not enough." = "Quit %@ and its web apps (PWAs) completely (⌘Q) to write the pending changes; closing its windows is not enough.";
 "Back Up Now" = "Back Up Now";
 "Copy this profile's bookmark file now. Manual backups are kept until you delete them." = "Copy this profile's bookmark file now. Manual backups are kept until you delete them.";
 "Manual" = "Manual";

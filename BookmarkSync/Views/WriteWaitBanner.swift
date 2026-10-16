@@ -34,12 +34,12 @@ struct WriteWaitBanner: View {
         // count of zero must not read as "nothing to write".
         if pending == 0 {
             return L10n.format(
-                "%@ is running. Quit it completely (⌘Q) to write the pending changes; closing its windows is not enough, and an open web app (PWA) of it also keeps it running.",
+                "Quit %@ and its web apps (PWAs) completely (⌘Q) to write the pending changes; closing its windows is not enough.",
                 name
             )
         }
         return L10n.format(
-            "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough, and an open web app (PWA) of it also keeps it running.",
+            "Quit %@ and its web apps (PWAs) completely (⌘Q) to write %ld pending change(s); closing its windows is not enough.",
             name, pending
         )
     }
