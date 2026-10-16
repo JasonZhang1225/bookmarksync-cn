@@ -79,6 +79,11 @@ class BrowserDiscoverer {
                 }
 
                 for (dirName, displayName) in profileMap {
+                    // Only the local Bookmarks file. A profile signed in to a
+                    // Google Account without Chrome sync also has AccountBookmarks;
+                    // Chrome rebuilds that file from the account's server copy and
+                    // discards edits made to it, so it must never be synced by
+                    // rewriting it (tried and reverted, 2026-10-16).
                     let bPath = supportPath.appendingPathComponent(dirName).appendingPathComponent("Bookmarks").path
                     if FileManager.default.fileExists(atPath: bPath) {
                         var finalDisplayName = displayName
