@@ -87,6 +87,7 @@ class SyncEngine {
                 let relevantPaths = paths.filter { path in
                     activeFilePaths.contains(path) ||
                     activeFilePaths.contains((path as NSString).appendingPathComponent("Bookmarks")) ||
+                    activeFilePaths.contains((path as NSString).appendingPathComponent("AccountBookmarks")) ||
                     activeFilePaths.contains((path as NSString).appendingPathComponent("Bookmarks.plist")) ||
                     activeFilePaths.contains((path as NSString).appendingPathComponent("places.sqlite"))
                 }

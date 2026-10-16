@@ -25,6 +25,20 @@ final class BackupStoreTests: XCTestCase {
         String(decoding: try Data(contentsOf: url), as: UTF8.self)
     }
 
+    /// Chrome's AccountBookmarks file sits beside Bookmarks; neither file's
+    /// backups may show up in the other's list.
+    func testBackupsOfSiblingBookmarkFilesStaySeparate() throws {
+        try setLive("local")
+        let account = dir.appendingPathComponent("AccountBookmarks")
+        try Data("account".utf8).write(to: account)
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        try BackupStore.createBackup(of: live, now: now)
+        try BackupStore.createBackup(of: account, now: now)
+
+        XCTAssertEqual(try BackupStore.listBackups(for: live).map { try contents($0.url) }, ["local"])
+        XCTAssertEqual(try BackupStore.listBackups(for: account).map { try contents($0.url) }, ["account"])
+    }
+
     func testBackupIsNamedByTimestamp() throws {
         try setLive("v1")
         let now = Date(timeIntervalSince1970: 1_800_000_000)
