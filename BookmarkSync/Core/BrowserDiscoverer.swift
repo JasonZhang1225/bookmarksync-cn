@@ -13,13 +13,6 @@ struct DiscoveredProfile {
 class BrowserDiscoverer {
     static var isSafariAccessGranted: Bool = true
 
-    /// The bookmark files a Chromium profile directory can hold. The suffix is
-    /// part of the stored profile name, so it stays in English.
-    static let bookmarkFileNames: [(name: String, nameSuffix: String)] = [
-        ("Bookmarks", ""),
-        ("AccountBookmarks", " (Account)"),
-    ]
-
     static func discover() -> [DiscoveredProfile] {
         isSafariAccessGranted = false
         var profiles: [DiscoveredProfile] = []
@@ -86,40 +79,33 @@ class BrowserDiscoverer {
                 }
 
                 for (dirName, displayName) in profileMap {
-                    let profileDir = supportPath.appendingPathComponent(dirName)
-                    // Chrome keeps bookmarks it syncs with a Google Account
-                    // (without full Chrome sync) in a separate AccountBookmarks
-                    // file, with the same format. A profile can have either or both.
-                    let files = bookmarkFileNames.map { (file: $0, path: profileDir.appendingPathComponent($0.name).path) }
-                        .filter { FileManager.default.fileExists(atPath: $0.path) }
-                    guard !files.isEmpty else { continue }
-
-                    var finalDisplayName = displayName
-                    if finalDisplayName == "Default" || finalDisplayName.trimmingCharacters(in: .whitespaces).isEmpty {
-                        let authPath = profileDir.appendingPathComponent("auth_account").path
-                        if let authData = try? Data(contentsOf: URL(fileURLWithPath: authPath)) {
-                            if let braceIndex = authData.firstIndex(of: 0x7B),
-                               let lastBraceIndex = authData.lastIndex(of: 0x7D),
-                               lastBraceIndex > braceIndex {
-                                let jsonData = authData.subdata(in: braceIndex..<(lastBraceIndex + 1))
-                                if let authJson = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-                                   let fullName = authJson["full_name"] as? String, !fullName.isEmpty {
-                                    finalDisplayName = fullName
+                    let bPath = supportPath.appendingPathComponent(dirName).appendingPathComponent("Bookmarks").path
+                    if FileManager.default.fileExists(atPath: bPath) {
+                        var finalDisplayName = displayName
+                        if finalDisplayName == "Default" || finalDisplayName.trimmingCharacters(in: .whitespaces).isEmpty {
+                            let authPath = supportPath.appendingPathComponent(dirName).appendingPathComponent("auth_account").path
+                            if let authData = try? Data(contentsOf: URL(fileURLWithPath: authPath)) {
+                                if let braceIndex = authData.firstIndex(of: 0x7B),
+                                   let lastBraceIndex = authData.lastIndex(of: 0x7D),
+                                   lastBraceIndex > braceIndex {
+                                    let jsonData = authData.subdata(in: braceIndex..<(lastBraceIndex + 1))
+                                    if let authJson = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+                                       let fullName = authJson["full_name"] as? String, !fullName.isEmpty {
+                                        finalDisplayName = fullName
+                                    }
                                 }
                             }
                         }
-                    }
-
-                    if finalDisplayName.trimmingCharacters(in: .whitespaces).isEmpty {
-                        finalDisplayName = "Default"
-                    }
-
-                    for (file, path) in files {
+                        
+                        if finalDisplayName.trimmingCharacters(in: .whitespaces).isEmpty {
+                            finalDisplayName = "Default"
+                        }
+                        
                         profiles.append(DiscoveredProfile(
                             bundleId: bundleId,
                             browserName: name,
-                            profileName: finalDisplayName + file.nameSuffix,
-                            bookmarkFilePath: path,
+                            profileName: finalDisplayName,
+                            bookmarkFilePath: bPath,
                             appPath: appUrl.path
                         ))
                     }
