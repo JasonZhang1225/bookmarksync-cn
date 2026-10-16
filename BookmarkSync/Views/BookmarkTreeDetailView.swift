@@ -198,6 +198,7 @@ struct BookmarkTreeDetailView: View {
         case .mismatch: return .orange
         case .writePending: return .blue
         case .disabled: return .gray
+        case .notSyncedHere: return .gray
         case .unknown: return .secondary
         }
     }

@@ -115,6 +115,11 @@ extension SyncEngine {
         }
 
         do {
+            // Stored ids must match the parsers' current scheme before anything
+            // is compared; a failure aborts this pass rather than syncing with
+            // half-migrated ids.
+            try BookmarkIdMigration.migrateIfNeeded(context: modelContext, viewModel: viewModel)
+
             let allConfigs = try modelContext.fetch(FetchDescriptor<BrowserConfig>())
             let enabledConfigs = allConfigs.filter { $0.isEnabled && !viewModel.unavailableProfileIds.contains($0.id) && $0.profileSetId != nil && !$0.profileSetId!.isEmpty }
 
@@ -488,7 +493,13 @@ extension SyncEngine {
                         changeTitles.append(title)
                     }
 
+                    // Bookmarks under a root this browser does not have can never
+                    // be written to it; comparing them would only re-queue the
+                    // same write forever. See `BookmarkRoots`.
+                    let supportedRoots = BookmarkRoots.supported(bundleId: config.bundleId, profileName: config.profileName)
+
                     for (id, stateNode) in stateDict {
+                        guard supportedRoots.contains(BookmarkRoots.root(of: id)) else { continue }
                         if let currentNode = currentDict[id] {
                             if currentNode.title != stateNode.title || currentNode.url != stateNode.url || currentNode.parentId != stateNode.parentId {
                                 noteChange("Update: \(stateNode.title)")

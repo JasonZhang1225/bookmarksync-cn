@@ -122,3 +122,4 @@
 "Restored the backup from %@. Bookmarks it lacks will also be removed from your other browsers; a large removal is held in the menu bar for your confirmation first." = "已恢复 %@ 的备份。备份里没有的书签也会从其他浏览器中删除；如果一次删除较多，会先在菜单栏暂停，等你确认。";
 "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough." = "%@ 正在运行。完全退出（⌘Q）后才会写入 %ld 项待写入的改动；只关闭窗口不算退出。";
 "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again." = "无法读取此配置的书签文件。恢复读取之前会跳过它，不会删除任何书签。";
+"Not Synced Here" = "此浏览器不同步";
