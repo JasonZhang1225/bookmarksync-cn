@@ -56,3 +56,43 @@
 
 - 结果：用户反馈备份差异对比已在 Mac 上测试通过。
 - 未测：实机验证第 1 轮其余项（固定签名跨版本授权、暂停删除与查看详情、空文件夹保留、写入等待提示）；用户决定先推进新功能，留到第 2 轮。
+
+## 2026-10-16 网址匹配与书签 ID 迁移（PR #8，`fix/m1-url-matching`，计划 M1、E1；含 PR #7 的文档补记）
+
+- 改动：`normalizeURL` 只忽略协议、主机大小写、开头的 `www.`、默认端口和末尾斜杠，保留路径 / 参数 / 片段的大小写和非默认端口；新增 `BookmarkIdMigration`（`UserDefaults` 键 `bookmarkIdSchemeVersion` = 2），第一次同步前把中枢节点和各配置 `observedStateData` 里的 ID 改成新规则（两阶段改名，`:dupN` 沿用原顺序）；`AGENTS.md` 2.E、README 两处说明随之修正。
+- 原因/决策：旧规则把大小写不同的路径、不同端口当成同一个书签；改 ID 规则必须带迁移，否则下一轮会表现为“全部删除 + 全部新增”。
+- 验证：PR CI 通过，含新增 `URLMatchingTests`（规范化与迁移）。
+- 未验证：真实书签库升级后的第一次同步（最终实机验证清单第 2 项）。
+
+## 2026-10-16 根目录映射（PR #9，`fix/m2-root-mapping`，计划 M2）
+
+- 改动：新增 `BookmarkRoots`，定义各浏览器支持的根目录（Chrome 有 `synced`，Safari 默认配置只有书签栏和书签菜单，Safari 命名配置只有书签栏，Firefox 只有书签栏和其他书签）；导出阶段不再把目标浏览器没有的根目录算作“缺失”；书签详情对这类条目显示“此浏览器不同步”。
+- 原因/决策：Chrome 的移动设备书签在 Safari 里无处可放，以前每轮都会对 Safari 重新排队写入。
+- 验证：PR CI 通过，含新增 `RootMappingTests`。
+- 未验证：清单第 6 项。
+
+## 2026-10-16 Firefox 增量写入（PR #10，`fix/s3-firefox-incremental-write`，计划 S3、S4）
+
+- 改动：Firefox 写入改为 `FirefoxIncrementalWriter`：和读取共用 `assignIds` 确定身份，只删除 / 更新 / 新增有变化的行，保留 GUID 和分隔线；删除时给 Firefox Sync 写 `moz_bookmarks_deleted`、维护 `syncChangeCounter`；书签菜单里的书签留在原处，不再复制到“其他书签”；写入未变化的书签树不产生任何改动。
+- 附带修复：PR CI 曾崩溃（“model instance was destroyed by calling ModelContext.reset”）。原因是文件监视回调持有 `BrowserConfig` 模型对象，测试重建上下文后回调仍在访问；改为只保存文件路径字符串，被监视的文件列表变化时重建监视器（`SyncEngine.updateWatcher`）。
+- 验证：PR CI 通过，含新增 `FirefoxWriteTests`（sqlite fixture：未变化不写、原地改名、删除留记录、分隔线位置、菜单不复制、标签不动）。
+- 未验证：真实 Firefox 和 Firefox Sync 往返（清单第 7、8 项）。
+
+## 2026-10-16 设计稿与最终实机验证清单（PR #11，`docs/phase1-designs`，计划批次 7）
+
+- 改动：新增 `docs/design/d1-identity-model.md`（中枢自有 ID + 原生 ID 对照）、`docs/design/d2-browser-extension.md`（Chromium / Firefox 配套扩展）、`docs/design/u2-u3-m4-evaluation.md`（U2 归档方案选项、U3 不改、M4 交给 D1）；计划中合并出“最终实机验证清单”。
+- 决策：U3 写入队列不持久化，不改；M4 不单独修。U2 默认方式、D1 / D2 是否进入第二阶段，待用户决定。
+- 验证：仅文档。
+
+## 2026-10-16 实机验证：固定签名跨版本保留授权（计划 E2）
+
+- 结果：用户安装 PR #11 的 CI 包后，没有再被要求授予完全磁盘访问权限。2026-10-15 安装 PR #8 包时的那次授权，是从 ad-hoc 版切换到固定签名版的一次性授权。E2 验证通过。
+
+## 2026-10-16 最终实机验证结果与用户决定
+
+- 通过：E2（跨版本无需重新授权）、M1（升级后第一次同步无删除 / 暂停 / 大量更新）、B1/B2（浏览器运行时拒绝恢复，用户判断为通过）、M3（个人收藏里新建空文件夹被保留并同步）、U1（等待提示与 ⌘Q 后写入）、C1/C2（Chrome / Safari 云同步暂未发现异常，需长期观察）。
+- M2：Chrome 移动设备书签对 Safari 显示“此浏览器不同步”，符合设计；用户以为是 Safari 结构问题，已解释。
+- 未测：S1/S2/B3 批量删除（Chrome 其他配置读不到，未测）；S3/S4 Firefox（用户不用 Firefox）。
+- 新发现：① 在 Safari 书签根目录新建文件夹会被识别成一个新的 Safari 配置；文件夹删除后，该配置一直显示“暂时无法访问”且无法移除。② Chrome 读不到其他配置（多个 Google 账号），原因待查。③ Safari 删除后 Chrome 显示已删但实际未删：Chrome 当时在运行，删除在排队等 ⌘Q，属预期，待用户退出 Chrome 后确认。
+- 用户建议：写清自动备份的触发时机，增加手动备份按钮。
+- 决定：U2 维持现状（选项 A）；D1、D2 暂时搁置；用户表示按最小化工程的标准，需求已基本满足。
