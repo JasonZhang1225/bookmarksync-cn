@@ -30,8 +30,16 @@ struct WriteWaitBanner: View {
     private func message(for bundleId: String) -> String {
         let name = configs.first { $0.bundleId == bundleId }?.browserName ?? bundleId
         let pending = viewModel.diffHistory.filter { $0.isWaiting && $0.targetBundleIds.contains(bundleId) }.count
+        // A queued write is not always itemised (e.g. a pure reorder), so a
+        // count of zero must not read as "nothing to write".
+        if pending == 0 {
+            return L10n.format(
+                "%@ is running. Quit it completely (⌘Q) to write the pending changes; closing its windows is not enough, and an open web app (PWA) of it also keeps it running.",
+                name
+            )
+        }
         return L10n.format(
-            "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough.",
+            "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough, and an open web app (PWA) of it also keeps it running.",
             name, pending
         )
     }

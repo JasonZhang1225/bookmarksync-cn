@@ -34,7 +34,7 @@ struct BackupsView: View {
                 .padding(.top, 16)
                 .padding(.bottom, 8)
 
-            Text("A backup is taken before every write. Compare a backup with the current bookmarks before restoring it.")
+            Text("A backup is taken automatically right before BookmarkSync writes to a browser's bookmark file, and before every restore. Backups from the last 7 days are all kept, then one per day up to 30 days (200 at most); manual backups are never removed. Compare a backup with the current bookmarks before restoring it.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -50,18 +50,25 @@ struct BackupsView: View {
                 let sortedConfigs = configs.sorted(by: { $0.browserName < $1.browserName })
 
                 if selectedConfigId != nil {
-                    Picker("Select Profile", selection: $selectedConfigId) {
-                        ForEach(sortedConfigs) { config in
-                            Text(verbatim: "\(config.browserName) - \(config.profileName)")
-                                .tag(config.id as String?)
+                    HStack {
+                        Picker("Select Profile", selection: $selectedConfigId) {
+                            ForEach(sortedConfigs) { config in
+                                Text(verbatim: "\(config.browserName) - \(config.profileName)")
+                                    .tag(config.id as String?)
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .onChange(of: selectedConfigId) {
+                            loadBackups()
+                        }
+
+                        Button("Back Up Now") {
+                            backUpNow()
+                        }
+                        .help("Copy this profile's bookmark file now. Manual backups are kept until you delete them.")
                     }
-                    .pickerStyle(.menu)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
-                    .onChange(of: selectedConfigId) {
-                        loadBackups()
-                    }
                 }
 
                 Divider()
@@ -72,17 +79,18 @@ struct BackupsView: View {
                         .foregroundColor(.secondary)
                     Spacer()
                 } else {
+                    // The list takes whatever height the comparison panel
+                    // leaves, instead of a fixed 200 points.
                     List(backups) { item in
                         backupRow(item)
                     }
-                    .frame(height: 200)
+                    .frame(minHeight: 160, maxHeight: .infinity)
 
                     Divider()
 
                     comparisonPanel
                         .padding(16)
-
-                    Spacer(minLength: 0)
+                        .layoutPriority(1)
                 }
             }
         }
@@ -139,6 +147,9 @@ struct BackupsView: View {
         case .timestamped:
             label = L10n.text("Automatic")
             color = .green
+        case .manual:
+            label = L10n.text("Manual")
+            color = .orange
         case .legacyRotating:
             label = L10n.text("Old rotating")
             color = .gray
@@ -206,6 +217,21 @@ struct BackupsView: View {
             return
         }
         backups = BackupStore.listBackups(for: URL(fileURLWithPath: config.bookmarkFilePath))
+    }
+
+    private func backUpNow() {
+        guard let config = selectedConfig else { return }
+        do {
+            if try BackupStore.createBackup(of: URL(fileURLWithPath: config.bookmarkFilePath), manual: true) != nil {
+                alertMessage = L10n.format("Backed up %@ - %@.", config.browserName, config.profileName)
+            } else {
+                alertMessage = L10n.text("There is no bookmark file to back up.")
+            }
+        } catch {
+            alertMessage = L10n.format("Backup failed: %@", error.localizedDescription)
+        }
+        showAlert = true
+        loadBackups()
     }
 
     /// Parses the live file and the backup off the main thread and diffs them.

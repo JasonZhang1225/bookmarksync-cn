@@ -109,7 +109,7 @@
 "Bookmarks Bar" = "书签栏";
 "Other Bookmarks" = "其他书签";
 "Mobile Bookmarks" = "移动设备书签";
-"A backup is taken before every write. Compare a backup with the current bookmarks before restoring it." = "每次写入前都会自动备份。恢复前，请先把备份和当前书签对比一下。";
+"A backup is taken automatically right before BookmarkSync writes to a browser's bookmark file, and before every restore. Backups from the last 7 days are all kept, then one per day up to 30 days (200 at most); manual backups are never removed. Compare a backup with the current bookmarks before restoring it." = "BookmarkSync 每次写入某个浏览器的书签文件之前、每次恢复之前，都会自动备份一次。最近 7 天的备份全部保留，7–30 天每天保留一份（最多 200 份）；手动备份不会被自动删除。恢复前，请先把备份和当前书签对比一下。";
 "Compare" = "对比";
 "Automatic" = "自动备份";
 "Old rotating" = "旧版轮换备份";
@@ -120,7 +120,7 @@
 "Select a backup and click Compare to see what restoring it would change." = "选择一份备份并点击“对比”，查看恢复后会有哪些变化。";
 "Quit %@ (⌘Q) before restoring. While it is running it keeps its bookmarks in memory and would overwrite the restored file." = "请先完全退出 %@（⌘Q）再恢复。它运行时书签保存在内存里，会覆盖恢复后的文件。";
 "Restored the backup from %@. Bookmarks it lacks will also be removed from your other browsers; a large removal is held in the menu bar for your confirmation first." = "已恢复 %@ 的备份。备份里没有的书签也会从其他浏览器中删除；如果一次删除较多，会先在菜单栏暂停，等你确认。";
-"%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough." = "%@ 正在运行。完全退出（⌘Q）后才会写入 %ld 项待写入的改动；只关闭窗口不算退出。";
+"%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough, and an open web app (PWA) of it also keeps it running." = "%@ 正在运行。完全退出（⌘Q）后才会写入 %ld 项待写入的改动；只关闭窗口不算退出，它的网页应用（PWA）开着也算在运行。";
 "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again." = "无法读取此配置的书签文件。恢复读取之前会跳过它，不会删除任何书签。";
 "Not Synced Here" = "此浏览器不同步";
 "Remove this profile from the list. No bookmark file is changed." = "从列表中移除此配置，不会改动任何书签文件。";
@@ -128,3 +128,10 @@
 "This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile." = "已找不到这个配置。移除只会删除 BookmarkSync 里的记录，不会改动任何书签文件。之后如果它再次出现，会作为一个未启用的新配置列出。";
 "Remove" = "移除";
 "Cancel" = "取消";
+"%@ is running. Quit it completely (⌘Q) to write the pending changes; closing its windows is not enough, and an open web app (PWA) of it also keeps it running." = "%@ 正在运行。完全退出（⌘Q）后才会写入待写入的改动；只关闭窗口不算退出，它的网页应用（PWA）开着也算在运行。";
+"Back Up Now" = "立即备份";
+"Copy this profile's bookmark file now. Manual backups are kept until you delete them." = "立即复制一份此配置的书签文件。手动备份会一直保留，直到你自己删除。";
+"Manual" = "手动";
+"Backed up %@ - %@." = "已备份 %@ - %@。";
+"There is no bookmark file to back up." = "没有可备份的书签文件。";
+"Backup failed: %@" = "备份失败：%@";
