@@ -314,6 +314,12 @@ struct TrayMenu: View {
 
                 Spacer()
 
+                Text(verbatim: AppVersion.display)
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+                    .textSelection(.enabled)
+                    .help("Version (build, commit)")
+
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
                 }

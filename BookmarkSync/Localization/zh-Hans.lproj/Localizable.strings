@@ -135,3 +135,10 @@
 "Backed up %@ - %@." = "已备份 %@ - %@。";
 "There is no bookmark file to back up." = "没有可备份的书签文件。";
 "Backup failed: %@" = "备份失败：%@";
+"Delete…" = "删除…";
+"Delete" = "删除";
+"Delete \"%@\"?" = "删除“%@”？";
+"The folder and the %ld item(s) inside it will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed items are kept in the \"Deleted by BookmarkSync\" folder." = "这个文件夹及其中的 %ld 项会从所有已同步的浏览器中移除。写入每个浏览器之前都会先备份书签文件，移除的内容会保留在“Deleted by BookmarkSync”文件夹里。";
+"The bookmark will be removed from every synced browser. Each browser's bookmark file is backed up before it is written, and the removed bookmark is kept in the \"Deleted by BookmarkSync\" folder." = "这条书签会从所有已同步的浏览器中移除。写入每个浏览器之前都会先备份书签文件，移除的书签会保留在“Deleted by BookmarkSync”文件夹里。";
+"Delete from every synced browser" = "从所有已同步的浏览器中删除";
+"Version (build, commit)" = "版本（构建号，提交）";

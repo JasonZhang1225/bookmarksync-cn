@@ -80,6 +80,13 @@ struct OnboardingView: View {
                 }
                 
                 Spacer()
+
+                Text(verbatim: "BookmarkSync \(AppVersion.display)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .textSelection(.enabled)
+
+                Spacer()
                 
                 if currentPage < slides.count - 1 {
                     Button("Next") {
