@@ -4,6 +4,10 @@ import SwiftUI
 struct BookmarkDiffList: View {
     let diff: BookmarkDiff
     var maxHeight: CGFloat = 220
+    /// Clicking a bookmark row opens its link in the default browser.
+    var opensLinks = false
+    /// Offered on rows the other side has (added or changed ones).
+    var restoreAction: ((BookmarkDiff.Entry) -> Void)?
 
     /// Rows are about this tall; the scroll view gets an explicit height
     /// because one inside a popover collapses to zero otherwise.
@@ -26,7 +30,7 @@ struct BookmarkDiffList: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 2) {
                         ForEach(diff.entries) { entry in
-                            BookmarkDiffRow(entry: entry)
+                            BookmarkDiffRow(entry: entry, opensLinks: opensLinks, restoreAction: restoreAction)
                         }
                     }
                 }
@@ -38,6 +42,18 @@ struct BookmarkDiffList: View {
 
 struct BookmarkDiffRow: View {
     let entry: BookmarkDiff.Entry
+    var opensLinks = false
+    var restoreAction: ((BookmarkDiff.Entry) -> Void)?
+
+    private var canRestore: Bool {
+        if case .removed = entry.change { return false }
+        return restoreAction != nil
+    }
+
+    private var link: URL? {
+        guard opensLinks, let url = entry.url else { return nil }
+        return URL(string: url)
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 6) {
@@ -88,11 +104,26 @@ struct BookmarkDiffRow: View {
                     .truncationMode(.head)
             }
             Spacer(minLength: 0)
+
+            if canRestore, let restoreAction {
+                Button("Restore") {
+                    restoreAction(entry)
+                }
+                .controlSize(.small)
+                .help("Put this item from the backup back into every synced browser")
+            }
         }
         .padding(.vertical, 2)
         .padding(.horizontal, 4)
         .background(color.opacity(0.07))
         .cornerRadius(3)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if let link {
+                NSWorkspace.shared.open(link)
+            }
+        }
+        .help(link != nil ? L10n.text("Click to open link in default browser") : "")
     }
 
     private var symbol: String {
