@@ -5,6 +5,9 @@ struct BackupEntry: Identifiable, Equatable, Sendable {
     enum Kind: Equatable, Sendable {
         /// `<file>.backup.2026-10-15T14-30-05`, written by this version.
         case timestamped
+        /// `<file>.backup.manual.2026-10-15T14-30-05`, taken from the Backups
+        /// window. Never pruned automatically.
+        case manual
         /// `<file>.backup.1` ... `.backup.3`, written by earlier versions.
         case legacyRotating
         /// `<file>.backup.daily.2026-10-15`, written by earlier versions.
@@ -36,6 +39,7 @@ enum BackupStore {
     static let maxBackups = 200
 
     private static let marker = ".backup."
+    private static let manualPrefix = "manual."
 
     private static let timestampFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -53,13 +57,14 @@ enum BackupStore {
 
     /// Copies `fileURL` to a new timestamped backup beside it and prunes old
     /// backups. Returns `nil` when there is no file to back up.
+    /// A manual backup is kept until the user deletes it.
     @discardableResult
-    static func createBackup(of fileURL: URL, now: Date = Date()) throws -> URL? {
+    static func createBackup(of fileURL: URL, now: Date = Date(), manual: Bool = false) throws -> URL? {
         let fm = FileManager.default
         guard fm.fileExists(atPath: fileURL.path) else { return nil }
 
         let dir = fileURL.deletingLastPathComponent()
-        let base = "\(fileURL.lastPathComponent)\(marker)\(timestampFormatter.string(from: now))"
+        let base = "\(fileURL.lastPathComponent)\(marker)\(manual ? manualPrefix : "")\(timestampFormatter.string(from: now))"
         var target = dir.appendingPathComponent(base)
         var suffix = 2
         while fm.fileExists(atPath: target.path) {
@@ -124,6 +129,8 @@ enum BackupStore {
 
             if let date = timestamp(from: rest) {
                 entries.append(BackupEntry(url: url, kind: .timestamped, date: date))
+            } else if rest.hasPrefix(manualPrefix), let date = timestamp(from: String(rest.dropFirst(manualPrefix.count))) {
+                entries.append(BackupEntry(url: url, kind: .manual, date: date))
             } else if rest.hasPrefix("daily.") {
                 entries.append(BackupEntry(url: url, kind: .legacyDaily, date: modified))
             } else if Int(rest) != nil {

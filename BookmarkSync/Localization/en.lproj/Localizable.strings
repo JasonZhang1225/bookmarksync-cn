@@ -109,7 +109,7 @@
 "Bookmarks Bar" = "Bookmarks Bar";
 "Other Bookmarks" = "Other Bookmarks";
 "Mobile Bookmarks" = "Mobile Bookmarks";
-"A backup is taken before every write. Compare a backup with the current bookmarks before restoring it." = "A backup is taken before every write. Compare a backup with the current bookmarks before restoring it.";
+"A backup is taken automatically right before BookmarkSync writes to a browser's bookmark file, and before every restore. Backups from the last 7 days are all kept, then one per day up to 30 days (200 at most); manual backups are never removed. Compare a backup with the current bookmarks before restoring it." = "A backup is taken automatically right before BookmarkSync writes to a browser's bookmark file, and before every restore. Backups from the last 7 days are all kept, then one per day up to 30 days (200 at most); manual backups are never removed. Compare a backup with the current bookmarks before restoring it.";
 "Compare" = "Compare";
 "Automatic" = "Automatic";
 "Old rotating" = "Old rotating";
@@ -120,7 +120,7 @@
 "Select a backup and click Compare to see what restoring it would change." = "Select a backup and click Compare to see what restoring it would change.";
 "Quit %@ (⌘Q) before restoring. While it is running it keeps its bookmarks in memory and would overwrite the restored file." = "Quit %@ (⌘Q) before restoring. While it is running it keeps its bookmarks in memory and would overwrite the restored file.";
 "Restored the backup from %@. Bookmarks it lacks will also be removed from your other browsers; a large removal is held in the menu bar for your confirmation first." = "Restored the backup from %@. Bookmarks it lacks will also be removed from your other browsers; a large removal is held in the menu bar for your confirmation first.";
-"%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough." = "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough.";
+"Quit %@ and its web apps (PWAs) completely (⌘Q) to write %ld pending change(s); closing its windows is not enough." = "Quit %@ and its web apps (PWAs) completely (⌘Q) to write %ld pending change(s); closing its windows is not enough.";
 "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again." = "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again.";
 "Not Synced Here" = "Not Synced Here";
 "Remove this profile from the list. No bookmark file is changed." = "Remove this profile from the list. No bookmark file is changed.";
@@ -128,3 +128,10 @@
 "This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile." = "This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile.";
 "Remove" = "Remove";
 "Cancel" = "Cancel";
+"Quit %@ and its web apps (PWAs) completely (⌘Q) to write the pending changes; closing its windows is not enough." = "Quit %@ and its web apps (PWAs) completely (⌘Q) to write the pending changes; closing its windows is not enough.";
+"Back Up Now" = "Back Up Now";
+"Copy this profile's bookmark file now. Manual backups are kept until you delete them." = "Copy this profile's bookmark file now. Manual backups are kept until you delete them.";
+"Manual" = "Manual";
+"Backed up %@ - %@." = "Backed up %@ - %@.";
+"There is no bookmark file to back up." = "There is no bookmark file to back up.";
+"Backup failed: %@" = "Backup failed: %@";
