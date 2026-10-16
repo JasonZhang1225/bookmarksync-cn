@@ -5,7 +5,7 @@ import SwiftData
 final class BookmarkRootsTests: XCTestCase {
     func testSupportedRootsPerBrowser() {
         XCTAssertEqual(BookmarkRoots.supported(bundleId: "com.google.Chrome", profileName: "Default"), ["bookmark_bar", "other", "synced"])
-        XCTAssertEqual(BookmarkRoots.supported(bundleId: "com.apple.Safari", profileName: "Default"), ["bookmark_bar", "other"])
+        XCTAssertEqual(BookmarkRoots.supported(bundleId: "com.apple.Safari", profileName: "Default"), ["bookmark_bar", "other", "synced"])
         XCTAssertEqual(BookmarkRoots.supported(bundleId: "com.apple.Safari", profileName: "Work"), ["bookmark_bar"])
         XCTAssertEqual(BookmarkRoots.supported(bundleId: "org.mozilla.firefox", profileName: "default-release"), ["bookmark_bar", "other"])
     }
@@ -16,9 +16,9 @@ final class BookmarkRootsTests: XCTestCase {
     }
 }
 
-/// Chrome's mobile bookmarks have nowhere to go in Safari. They must not be
-/// reported as missing there, or every pass re-queues the same Safari write
-/// (plan item M2).
+/// Chrome's mobile bookmarks have nowhere to go in a named Safari profile (one
+/// folder, read as the bar). They must not be reported as missing there, or
+/// every pass re-queues the same Safari write (plan item M2).
 final class RootMappingSyncTests: XCTestCase {
     private var files: [URL] = []
 
@@ -54,8 +54,9 @@ final class RootMappingSyncTests: XCTestCase {
         }
         let root: [String: Any] = [
             "Children": [
-                ["Title": "BookmarksBar", "WebBookmarkType": "WebBookmarkTypeList", "WebBookmarkUUID": UUID().uuidString, "Children": bar],
+                ["Title": "BookmarksBar", "WebBookmarkType": "WebBookmarkTypeList", "WebBookmarkUUID": UUID().uuidString, "Children": [[String: Any]]()],
                 ["Title": "BookmarksMenu", "WebBookmarkType": "WebBookmarkTypeList", "WebBookmarkUUID": UUID().uuidString, "Children": [[String: Any]]()],
+                ["Title": "Work", "WebBookmarkType": "WebBookmarkTypeList", "WebBookmarkUUID": UUID().uuidString, "Children": bar],
             ],
             "Title": "", "WebBookmarkFileVersion": 1, "WebBookmarkType": "WebBookmarkTypeList", "WebBookmarkUUID": "ROOT",
         ]
@@ -78,8 +79,8 @@ final class RootMappingSyncTests: XCTestCase {
         context.insert(set)
         let chrome = BrowserConfig(id: "com.google.Chrome:Roots", bundleId: "com.google.Chrome", browserName: "Google Chrome",
                                    profileName: "Roots", bookmarkFilePath: chromeFile.path, isEnabled: true, profileSetId: set.id)
-        let safari = BrowserConfig(id: "com.apple.Safari:Default", bundleId: "com.apple.Safari", browserName: "Safari",
-                                   profileName: "Default", bookmarkFilePath: safariFile.path, isEnabled: true, profileSetId: set.id)
+        let safari = BrowserConfig(id: "com.apple.Safari:Work", bundleId: "com.apple.Safari", browserName: "Safari",
+                                   profileName: "Work", bookmarkFilePath: safariFile.path, isEnabled: true, profileSetId: set.id)
         context.insert(chrome)
         context.insert(safari)
         try context.save()

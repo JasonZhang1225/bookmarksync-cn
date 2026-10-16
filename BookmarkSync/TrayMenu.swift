@@ -254,6 +254,14 @@ struct TrayMenu: View {
                                         Image(systemName: "exclamationmark.triangle")
                                             .foregroundColor(.orange)
                                             .help("Profile temporarily unavailable. Saved configuration and bookmarks are preserved.")
+                                        Button {
+                                            confirmRemoval(of: config)
+                                        } label: {
+                                            Image(systemName: "minus.circle")
+                                        }
+                                        .buttonStyle(.plain)
+                                        .foregroundColor(.secondary)
+                                        .help("Remove this profile from the list. No bookmark file is changed.")
                                     }
                                     if viewModel.readFailedConfigIds.contains(config.id) {
                                         Image(systemName: "xmark.octagon")
@@ -324,6 +332,17 @@ struct TrayMenu: View {
             viewModel.loadProfileSets()
             viewModel.rescanProfiles()
             viewModel.syncEngine?.triggerSync(changedPaths: [], forceImmediate: true)
+        }
+    }
+
+    private func confirmRemoval(of config: BrowserConfig) {
+        let alert = NSAlert()
+        alert.messageText = L10n.format("Remove %@ (%@)?", config.browserName, config.profileName)
+        alert.informativeText = L10n.text("This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile.")
+        alert.addButton(withTitle: L10n.text("Remove"))
+        alert.addButton(withTitle: L10n.text("Cancel"))
+        if alert.runModal() == .alertFirstButtonReturn {
+            viewModel.removeUnavailableProfile(config)
         }
     }
 

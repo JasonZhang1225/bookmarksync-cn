@@ -123,3 +123,8 @@
 "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough." = "%@ is running. Quit it completely (⌘Q) to write %ld pending change(s); closing its windows is not enough.";
 "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again." = "Could not read this profile's bookmark file. It is skipped, and nothing is deleted, until it can be read again.";
 "Not Synced Here" = "Not Synced Here";
+"Remove this profile from the list. No bookmark file is changed." = "Remove this profile from the list. No bookmark file is changed.";
+"Remove %@ (%@)?" = "Remove %@ (%@)?";
+"This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile." = "This profile can no longer be found. Removing it only deletes BookmarkSync's record of it; no bookmark file is changed. If it shows up again later, it is listed as a new, disabled profile.";
+"Remove" = "Remove";
+"Cancel" = "Cancel";
